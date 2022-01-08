@@ -1,6 +1,6 @@
 package networks
 
-// ChainID represents the chain id of a blockchain
+// RpcURL represents the public RPC endpoint for the network
 type RpcURL string
 
 const (
