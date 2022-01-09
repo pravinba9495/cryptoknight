@@ -8,24 +8,6 @@ import (
 	"net/http"
 )
 
-// RouterAddressData for the smart contract
-type RouterAddressData struct {
-	Address string `json:"address,omitempty"`
-}
-
-// RouterAllowanceData schema
-type RouterAllowanceData struct {
-	Allowance string `json:"allowance,omitempty"`
-}
-
-// RouterTransactionData schema
-type RouterTransactionData struct {
-	Data     string `json:"data,omitempty"`
-	GasPrice string `json:"gasPrice,omitempty"`
-	To       string `json:"to,omitempty"`
-	Value    string `json:"value,omitempty"`
-}
-
 // GetRouterAddressByChainID returns the address of the 1inch router that must be trusted to spend funds for the exchange
 func GetRouterAddressByChainID(chainID int) (string, error) {
 	client := &http.Client{}
@@ -45,18 +27,18 @@ func GetRouterAddressByChainID(chainID int) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		var routerAddressData *RouterAddressData
-		if err := json.Unmarshal(body, &routerAddressData); err != nil {
+		var dto *ApproveSpenderResponseDto
+		if err := json.Unmarshal(body, &dto); err != nil {
 			return "", err
 		}
-		return routerAddressData.Address, nil
+		return dto.Address, nil
 	} else {
 		return "", errors.New(resp.Status)
 	}
 }
 
 // GetRouterTransactionData generates transaction body to allow the exchange with the 1inch router
-func GetRouterTransactionData(chainID int, tokenAddress string, amount int64) (*RouterTransactionData, error) {
+func GetRouterTransactionData(chainID int, tokenAddress string, amount int64) (*ApproveCalldataResponseDto, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+string(TransactionEndpoint), nil)
 	if err != nil {
@@ -82,11 +64,11 @@ func GetRouterTransactionData(chainID int, tokenAddress string, amount int64) (*
 		if err != nil {
 			return nil, err
 		}
-		var routerTransactionData *RouterTransactionData
-		if err := json.Unmarshal(body, &routerTransactionData); err != nil {
+		var dto *ApproveCalldataResponseDto
+		if err := json.Unmarshal(body, &dto); err != nil {
 			return nil, err
 		}
-		return routerTransactionData, nil
+		return dto, nil
 	} else {
 		return nil, errors.New(resp.Status)
 	}
@@ -119,11 +101,11 @@ func GetRouterAllowance(chainID int, tokenAddress string, walletAddress string) 
 		if err != nil {
 			return "", err
 		}
-		var routerAllowance *RouterAllowanceData
-		if err := json.Unmarshal(bytes, &routerAllowance); err != nil {
+		var dto *ApproveAllowanceResponseDto
+		if err := json.Unmarshal(bytes, &dto); err != nil {
 			return "", err
 		}
-		return routerAllowance.Allowance, nil
+		return dto.Allowance, nil
 	} else {
 		return "", errors.New(resp.Status)
 	}
