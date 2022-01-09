@@ -27,31 +27,31 @@ type RouterTransactionData struct {
 }
 
 // GetRouterAddressByChainID returns the address of the 1inch router that must be trusted to spend funds for the exchange
-func GetRouterAddressByChainID(chainID int) (*RouterAddressData, error) {
+func GetRouterAddressByChainID(chainID int) (string, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+string(SpenderEndpoint), nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	req.Header.Add("Accept", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
-		var routerAddress *RouterAddressData
-		if err := json.Unmarshal(body, &routerAddress); err != nil {
-			return nil, err
+		var routerAddressData *RouterAddressData
+		if err := json.Unmarshal(body, &routerAddressData); err != nil {
+			return "", err
 		}
-		return routerAddress, nil
+		return routerAddressData.Address, nil
 	} else {
-		return nil, errors.New(resp.Status)
+		return "", errors.New(resp.Status)
 	}
 }
 
@@ -93,11 +93,11 @@ func GetRouterTransactionData(chainID int, tokenAddress string, amount int64) (*
 }
 
 // GetRouterAllowance returns the number of tokens that the 1inch router is allowed to spend
-func GetRouterAllowance(chainID int, tokenAddress string, walletAddress string) (*RouterAllowanceData, error) {
+func GetRouterAllowance(chainID int, tokenAddress string, walletAddress string) (string, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+string(AllowanceEndpoint), nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	req.Header.Add("Accept", "application/json")
 
@@ -110,21 +110,21 @@ func GetRouterAllowance(chainID int, tokenAddress string, walletAddress string) 
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
 		bytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 		var routerAllowance *RouterAllowanceData
 		if err := json.Unmarshal(bytes, &routerAllowance); err != nil {
-			return nil, err
+			return "", err
 		}
-		return routerAllowance, nil
+		return routerAllowance.Allowance, nil
 	} else {
-		return nil, errors.New(resp.Status)
+		return "", errors.New(resp.Status)
 	}
 }
