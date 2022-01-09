@@ -29,7 +29,7 @@ type RouterTransactionData struct {
 // GetRouterAddressByChainID returns the address of the 1inch router that must be trusted to spend funds for the exchange
 func GetRouterAddressByChainID(chainID int) (*RouterAddress, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+"/approve/spender", nil)
+	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+string(SpenderEndpoint), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -55,10 +55,10 @@ func GetRouterAddressByChainID(chainID int) (*RouterAddress, error) {
 	}
 }
 
-// GenerateTransactionData generates transaction body to allow the exchange with the 1inch router
-func GenerateTransactionData(chainID int, tokenAddress string, amount int64) (*RouterTransactionData, error) {
+// GetRouterTransactionData generates transaction body to allow the exchange with the 1inch router
+func GetRouterTransactionData(chainID int, tokenAddress string, amount int64) (*RouterTransactionData, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+"/approve/transaction", nil)
+	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+string(TransactionEndpoint), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func GenerateTransactionData(chainID int, tokenAddress string, amount int64) (*R
 // GetRouterAllowance returns the number of tokens that the 1inch router is allowed to spend
 func GetRouterAllowance(chainID int, tokenAddress string, walletAddress string) (*RouterAllowance, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+"/approve/allowance", nil)
+	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+string(AllowanceEndpoint), nil)
 	if err != nil {
 		return nil, err
 	}
