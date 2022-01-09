@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-// GetHealthStatus checks the status of the 1inch router
-func GetHealthStatus(chainID int) error {
+// GetRouterHealthStatus checks the status of the 1inch router
+func GetRouterHealthStatus(chainID int) error {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+string(HealthcheckEndpoint), nil)
 	if err != nil {
