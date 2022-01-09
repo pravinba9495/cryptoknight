@@ -8,13 +8,13 @@ import (
 	"net/http"
 )
 
-// RouterAddress for the smart contract
-type RouterAddress struct {
+// RouterAddressData for the smart contract
+type RouterAddressData struct {
 	Address string `json:"address,omitempty"`
 }
 
-// RouterAllowance schema
-type RouterAllowance struct {
+// RouterAllowanceData schema
+type RouterAllowanceData struct {
 	Allowance string `json:"allowance,omitempty"`
 }
 
@@ -27,7 +27,7 @@ type RouterTransactionData struct {
 }
 
 // GetRouterAddressByChainID returns the address of the 1inch router that must be trusted to spend funds for the exchange
-func GetRouterAddressByChainID(chainID int) (*RouterAddress, error) {
+func GetRouterAddressByChainID(chainID int) (*RouterAddressData, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+string(SpenderEndpoint), nil)
 	if err != nil {
@@ -45,7 +45,7 @@ func GetRouterAddressByChainID(chainID int) (*RouterAddress, error) {
 		if err != nil {
 			return nil, err
 		}
-		var routerAddress *RouterAddress
+		var routerAddress *RouterAddressData
 		if err := json.Unmarshal(body, &routerAddress); err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func GetRouterTransactionData(chainID int, tokenAddress string, amount int64) (*
 }
 
 // GetRouterAllowance returns the number of tokens that the 1inch router is allowed to spend
-func GetRouterAllowance(chainID int, tokenAddress string, walletAddress string) (*RouterAllowance, error) {
+func GetRouterAllowance(chainID int, tokenAddress string, walletAddress string) (*RouterAllowanceData, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", ApiBaseUrl+"/"+ApiVersion+"/"+fmt.Sprint(chainID)+string(AllowanceEndpoint), nil)
 	if err != nil {
@@ -119,7 +119,7 @@ func GetRouterAllowance(chainID int, tokenAddress string, walletAddress string) 
 		if err != nil {
 			return nil, err
 		}
-		var routerAllowance *RouterAllowance
+		var routerAllowance *RouterAllowanceData
 		if err := json.Unmarshal(bytes, &routerAllowance); err != nil {
 			return nil, err
 		}
