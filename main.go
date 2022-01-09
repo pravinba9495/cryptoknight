@@ -13,7 +13,7 @@ import (
 
 func main() {
 
-	address := flag.String("address", "", "Your wallet address")
+	address := flag.String("address", "0x0000000000000000000000000000000000000000", "Your wallet address")
 	chainID := flag.Int("chain", 1, "Your preferred chain")
 	stableCoin := flag.String("stable", "USDC", "Your preferred stable coin")
 	targetCoin := flag.String("target", "ETH", "Your high conviction coin")
