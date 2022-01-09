@@ -17,9 +17,9 @@ const (
 
 const (
 	// Info endpoints
-	LiquiditySourceEndpoint RouterEndpoint = "/liquidity-sources"
-	TokensEndpoint          RouterEndpoint = "/tokens"
-	PresetsEndpoint         RouterEndpoint = "/presets"
+	LiquiditySourcesEndpoint RouterEndpoint = "/liquidity-sources"
+	TokensEndpoint           RouterEndpoint = "/tokens"
+	PresetsEndpoint          RouterEndpoint = "/presets"
 )
 
 const (
