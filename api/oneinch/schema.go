@@ -6,6 +6,7 @@ type TokenBalance string
 
 // ApproveSpenderResponseDto schema
 type ApproveSpenderResponseDto struct {
+	// Address of the 1inch router that must be trusted to spend funds for the exchange
 	Address string `json:"address,omitempty"`
 }
 
@@ -28,36 +29,50 @@ type ApproveCalldataParamsDto struct {
 
 // ApproveCalldataResponseDto schema
 type ApproveCalldataResponseDto struct {
-	Data     string `json:"data,omitempty"`
+	// The encoded data to call the approve method on the swapped token contract
+	Data string `json:"data,omitempty"`
+	// Gas price for fast transaction processing
 	GasPrice string `json:"gasPrice,omitempty"`
-	To       string `json:"to,omitempty"`
-	Value    string `json:"value,omitempty"`
+	// Token address that will be allowed to exchange through 1inch router
+	To string `json:"to,omitempty"`
+	// Native token value in WEI (for approve is always 0)
+	Value string `json:"value,omitempty"`
 }
 
 // ProtocolsResponseDto schema
 type ProtocolsResponseDto struct {
+	// List of protocols that are available for routing in the 1inch Aggregation protocol
 	Protocols []ProtocolImageDto `json:"protocols,omitempty"`
 }
 
 // ProtocolImageDto schema
 type ProtocolImageDto struct {
-	ID    string `json:"id,omitempty"`
+	// Protocol id
+	ID string `json:"id,omitempty"`
+	// Protocol title
 	Title string `json:"title,omitempty"`
-	Img   string `json:"img,omitempty"`
+	// Protocol logo image
+	Img string `json:"img,omitempty"`
 }
 
 // TokensResponseDto schema
 type TokensResponseDto struct {
+	// List of supported tokens
 	Tokens map[string]TokenDto `json:"tokens,omitempty"`
 }
 
 // TokenDto schema
 type TokenDto struct {
-	Symbol   string `json:"symbol,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Address  string `json:"address,omitempty"`
+	// Symbol for the token
+	Symbol string `json:"symbol,omitempty"`
+	// Name of the token
+	Name string `json:"name,omitempty"`
+	// Address of the token
+	Address string `json:"address,omitempty"`
+	// Number of decimal places for the token
 	Decimals uint64 `json:"decimals"`
-	LogoURI  string `json:"logoURI,omitempty"`
+	// URL for the logo of the token
+	LogoURI string `json:"logoURI,omitempty"`
 }
 
 // PresetsResponseDto schema
