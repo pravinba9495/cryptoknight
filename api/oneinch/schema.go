@@ -1,7 +1,9 @@
 package oneinch
 
+// Address of a token
 type TokenAddress string
 
+// Balance of a token
 type TokenBalance string
 
 // ApproveSpenderResponseDto schema
@@ -12,8 +14,8 @@ type ApproveSpenderResponseDto struct {
 
 // ApproveAllowanceParamsDto schema
 type ApproveAllowanceParamsDto struct {
-	TokenAddress  string `json:"tokenAddress,omitempty" url:"tokenAddress"`
-	WalletAddress string `json:"walletAddress,omitempty" url:"walletAddress"`
+	TokenAddress  string `json:"tokenAddress,omitempty" url:"tokenAddress,omitempty"`
+	WalletAddress string `json:"walletAddress,omitempty" url:"walletAddress,omitempty"`
 }
 
 // ApproveAllowanceResponseDto schema
@@ -23,8 +25,8 @@ type ApproveAllowanceResponseDto struct {
 
 // ApproveCalldataParamsDto schema
 type ApproveCalldataParamsDto struct {
-	TokenAddress string `json:"tokenAddress,omitempty" url:"tokenAddress"`
-	Amount       string `json:"amount,omitempty" url:"amount"`
+	TokenAddress string `json:"tokenAddress,omitempty" url:"tokenAddress,omitempty"`
+	Amount       string `json:"amount,omitempty" url:"amount,omitempty"`
 }
 
 // ApproveCalldataResponseDto schema
@@ -96,7 +98,7 @@ type TransactionDto struct {
 	Data     string `json:"data,omitempty"`
 	Value    string `json:"value,omitempty"`
 	GasPrice string `json:"gasPrice,omitempty"`
-	Gas      string `json:"gas,omitempty"`
+	Gas      uint64 `json:"gas,omitempty"`
 }
 
 // PathViewDto schema
@@ -109,8 +111,8 @@ type PathViewDto struct {
 
 // QuoteParamsDto schema
 type QuoteParamsDto struct {
-	FromTokenAddress string `json:"fromTokenAddress,omitempty" url:"fromTokenAddress"`
-	ToTokenAddress   string `json:"toTokenAddress,omitempty" url:"toTokenAddress"`
+	FromTokenAddress string `json:"fromTokenAddress,omitempty" url:"fromTokenAddress,omitempty"`
+	ToTokenAddress   string `json:"toTokenAddress,omitempty" url:"toTokenAddress,omitempty"`
 	Amount           string `json:"amount,omitempty" url:"amount"`
 }
 
@@ -125,33 +127,19 @@ type QuoteResponseDto struct {
 
 // SwapParamsDto schema
 type SwapParamsDto struct {
-	FromTokenAddress string  `json:"fromTokenAddress,omitempty" url:"fromTokenAddress"`
-	ToTokenAddress   string  `json:"toTokenAddress,omitempty" url:"toTokenAddress"`
-	Amount           string  `json:"amount,omitempty" url:"amount"`
-	FromAddress      string  `json:"fromAddress,omitempty" url:"fromAddress"`
-	Slippage         float64 `json:"slippage,omitempty" url:"slippage"`
-	DestReceiver     string  `json:"destReceiver,omitempty" url:"destReceiver"`
-	Fee              float64 `json:"fee,omitempty" url:"fee"`
-	GasPrice         string  `json:"gasPrice,omitempty" url:"gasPrice"`
-	ComplexityLevel  uint64  `json:"complexityLevel,string,omitempty" url:"complexityLevel"`
-	ConnectorTokens  uint64  `json:"connectorTokens,string,omitempty" url:"connectorTokens"`
-	AllowPartialFill bool    `json:"allowPartialFill,omitempty" url:"allowPartialFill"`
-	DisableEstimate  bool    `json:"disableEstimate,omitempty" url:"disableEstimate"`
-	GasLimit         string  `json:"gasLimit,omitempty" url:"gasLimit"`
-	MainRouteParts   uint64  `json:"mainRouteParts,string,omitempty" url:"mainRouteParts"`
-	Parts            uint64  `json:"parts,string,omitempty" url:"parts"`
+	FromTokenAddress string `json:"fromTokenAddress,omitempty" url:"fromTokenAddress,omitempty"`
+	ToTokenAddress   string `json:"toTokenAddress,omitempty" url:"toTokenAddress,omitempty"`
+	Amount           string `json:"amount,omitempty" url:"amount,omitempty"`
+	FromAddress      string `json:"fromAddress,omitempty" url:"fromAddress,omitempty"`
+	Slippage         string `json:"slippage,omitempty" url:"slippage,omitempty"`
+	GasLimit         string `json:"gasLimit,omitempty" url:"gasLimit"`
 }
 
 // SwapResponseDto schema
 type SwapResponseDto struct {
-	FromToken       TokenDto `json:"fromToken,omitempty"`
-	ToToken         TokenDto `json:"toToken,omitempty"`
-	FromTokenAmount string   `json:"fromTokenAmount,omitempty"`
-	ToTokenAmount   string   `json:"toTokenAmount,omitempty"`
-	From            string   `json:"from,omitempty"`
-	To              string   `json:"to,omitempty"`
-	Data            string   `json:"data,omitempty"`
-	Value           string   `json:"value,omitempty"`
-	GasPrice        string   `json:"gasPrice,omitempty"`
-	Gas             string   `json:"gas,omitempty"`
+	FromToken       TokenDto       `json:"fromToken,omitempty"`
+	ToToken         TokenDto       `json:"toToken,omitempty"`
+	FromTokenAmount string         `json:"fromTokenAmount,omitempty"`
+	ToTokenAmount   string         `json:"toTokenAmount,omitempty"`
+	Tx              TransactionDto `json:"tx,omitempty"`
 }
