@@ -3,7 +3,7 @@ package chains
 import "errors"
 
 // GetChainNameByID returns the chain name for the given chain id
-func GetChainNameByID(chainID int) (string, error) {
+func GetChainNameByID(chainID uint64) (string, error) {
 	switch chainID {
 	case 1:
 		return "Ethereum", nil

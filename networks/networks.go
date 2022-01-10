@@ -23,7 +23,7 @@ const (
 )
 
 // GetRpcURLByChainID returns the RPC url for the given chain id
-func GetRpcURLByChainID(chainID int) (RpcURL, error) {
+func GetRpcURLByChainID(chainID uint64) (RpcURL, error) {
 	switch chainID {
 	case 1:
 		return Ethereum, nil
