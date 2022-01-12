@@ -17,8 +17,8 @@ func main() {
 	var chainID, days, profit uint64
 	flag.StringVar(&address, "public", "0x0000000000000000000000000000000000000000", "Your wallet public address")
 	flag.StringVar(&privateKey, "private", "", "Your wallet private key")
-	flag.StringVar(&stableToken, "stable", "", "Stable token (ERC20) to use. Example: USDC, USDT, DAI")
-	flag.StringVar(&targetToken, "target", "", "Target ERC20 token to hold. Example: WETH, WMATIC, LINK.")
+	flag.StringVar(&stableToken, "stable", "USDC", "Stable token (ERC20) to use. Example: USDC, USDT, DAI")
+	flag.StringVar(&targetToken, "target", "WETH", "Target ERC20 token to hold. Example: WETH, WMATIC, LINK.")
 	flag.StringVar(&aggregator, "aggregator", "1INCH", "Aggregator to use. Allowed options: 1INCH, PARASWAP")
 	flag.Uint64Var(&chainID, "chain", 1, "Chain to use. Allowed options: 1 (Ethereum), 10 (Optimism), 56 (Binance Smart Chain), 137 (Polygon/Matic), 42161 (Arbitrum)")
 	flag.Uint64Var(&days, "days", 30, "No. of days to use to calculate moving average")
