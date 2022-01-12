@@ -1,10 +1,6 @@
 package oneinch
 
-// Address of a token
-type TokenAddress string
-
-// Balance of a token
-type TokenBalance string
+import "github.com/pravinba9495/kryptonite/models"
 
 // ApproveSpenderResponseDto schema
 type ApproveSpenderResponseDto struct {
@@ -60,21 +56,7 @@ type ProtocolImageDto struct {
 // TokensResponseDto schema
 type TokensResponseDto struct {
 	// List of supported tokens
-	Tokens map[string]TokenDto `json:"tokens,omitempty"`
-}
-
-// TokenDto schema
-type TokenDto struct {
-	// Symbol for the token
-	Symbol string `json:"symbol,omitempty"`
-	// Name of the token
-	Name string `json:"name,omitempty"`
-	// Address of the token
-	Address string `json:"address,omitempty"`
-	// Number of decimal places for the token
-	Decimals uint64 `json:"decimals"`
-	// URL for the logo of the token
-	LogoURI string `json:"logoURI,omitempty"`
+	Tokens map[string]models.Token `json:"tokens,omitempty"`
 }
 
 // PresetsResponseDto schema
@@ -113,16 +95,16 @@ type PathViewDto struct {
 type QuoteParamsDto struct {
 	FromTokenAddress string `json:"fromTokenAddress,omitempty" url:"fromTokenAddress,omitempty"`
 	ToTokenAddress   string `json:"toTokenAddress,omitempty" url:"toTokenAddress,omitempty"`
-	Amount           string `json:"amount,omitempty" url:"amount"`
+	Amount           string `json:"amount,omitempty" url:"amount,omitempty"`
 }
 
 // QuoteResponseDto schema
 type QuoteResponseDto struct {
-	FromToken       TokenDto `json:"fromToken,omitempty"`
-	ToToken         TokenDto `json:"toToken,omitempty"`
-	FromTokenAmount string   `json:"fromTokenAmount,omitempty"`
-	ToTokenAmount   string   `json:"toTokenAmount,omitempty"`
-	EstimatedGas    uint64   `json:"estimatedGas,omitempty"`
+	FromToken       models.Token `json:"fromToken,omitempty"`
+	ToToken         models.Token `json:"toToken,omitempty"`
+	FromTokenAmount string       `json:"fromTokenAmount,omitempty"`
+	ToTokenAmount   string       `json:"toTokenAmount,omitempty"`
+	EstimatedGas    uint64       `json:"estimatedGas,omitempty"`
 }
 
 // SwapParamsDto schema
@@ -137,8 +119,8 @@ type SwapParamsDto struct {
 
 // SwapResponseDto schema
 type SwapResponseDto struct {
-	FromToken       TokenDto       `json:"fromToken,omitempty"`
-	ToToken         TokenDto       `json:"toToken,omitempty"`
+	FromToken       models.Token   `json:"fromToken,omitempty"`
+	ToToken         models.Token   `json:"toToken,omitempty"`
 	FromTokenAmount string         `json:"fromTokenAmount,omitempty"`
 	ToTokenAmount   string         `json:"toTokenAmount,omitempty"`
 	Tx              TransactionDto `json:"tx,omitempty"`

@@ -2,31 +2,33 @@ package networks
 
 import "errors"
 
-// RpcURL represents the public RPC endpoint for the network
-type RpcURL string
-
 const (
 	// For Ethereum
-	Ethereum RpcURL = "https://cloudflare-eth.com/"
+	Ethereum string = "https://cloudflare-eth.com"
+
+	// For Goerli Testnet
+	Goerli string = "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
 
 	// For Binance Smart Chain (BSC)
-	BinanceSmartChain RpcURL = "https://bsc-dataseed.binance.org/"
+	BinanceSmartChain string = "https://bsc-dataseed.binance.org"
 
 	// For Polygon
-	Polygon RpcURL = "https://polygon-rpc.com/"
+	Polygon string = "https://polygon-rpc.com"
 
 	// For Optimism
-	Optimisim RpcURL = "https://mainnet.optimism.io/"
+	Optimisim string = "https://mainnet.optimism.io"
 
 	// For Arbitrum
-	Arbitrum RpcURL = "https://arb1.arbitrum.io/rpc"
+	Arbitrum string = "https://arb1.arbitrum.io/rpc"
 )
 
 // GetRpcURLByChainID returns the RPC url for the given chain id
-func GetRpcURLByChainID(chainID uint64) (RpcURL, error) {
+func GetRpcURLByChainID(chainID uint64) (string, error) {
 	switch chainID {
 	case 1:
 		return Ethereum, nil
+	case 5:
+		return Goerli, nil
 	case 56:
 		return BinanceSmartChain, nil
 	case 137:
