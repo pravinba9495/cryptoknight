@@ -69,12 +69,12 @@ func (w *Wallet) GetTokenBalances(stableTokenContractAddress string, targetToken
 	}
 	defer client.Close()
 
-	_, err = os.Getwd()
+	path, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	_, err = exec.Command("./node-eth", "--address="+w.Address.String(), "--token="+targetTokenContractAddress, "--provider="+rpc).Output()
+	_, err = exec.Command(path+"/node-eth", "--address="+w.Address.String(), "--token="+targetTokenContractAddress, "--provider="+rpc).Output()
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (w *Wallet) GetTokenBalances(stableTokenContractAddress string, targetToken
 
 	w.TargetCoinBalance = *n
 
-	_, err = exec.Command("./node-eth", "--address="+w.Address.String(), "--token="+stableTokenContractAddress, "--provider="+rpc).Output()
+	_, err = exec.Command(path+"/node-eth", "--address="+w.Address.String(), "--token="+stableTokenContractAddress, "--provider="+rpc).Output()
 	if err != nil {
 		return err
 	}
