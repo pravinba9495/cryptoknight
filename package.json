@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "pkg": "pkg -t host index.js --output node-eth",
-    "docker": "pkg -t node14-linux-amd64 index.js --output bin/node-eth"
+    "docker": "pkg -t node14-alpine-x64 index.js --output bin/node-eth"
   },
   "author": "",
   "license": "ISC",
