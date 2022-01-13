@@ -19,7 +19,7 @@ func GetMarketChartByCoin(coinID string, days uint64) (*MarketChartResponseDto, 
 	req.Header.Add("Accept", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(err.Error() + ":" + req.URL.String())
 	}
 	defer resp.Body.Close()
 
@@ -34,6 +34,6 @@ func GetMarketChartByCoin(coinID string, days uint64) (*MarketChartResponseDto, 
 		}
 		return dto, nil
 	} else {
-		return nil, errors.New(resp.Status + ":" + req.RequestURI)
+		return nil, errors.New(resp.Status + ":" + req.URL.String())
 	}
 }

@@ -100,7 +100,7 @@ func (w *Wallet) GetTokenBalances() ([]TokenAddressWithBalance, error) {
 	req.Header.Add("Accept", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(err.Error() + ":" + req.URL.String())
 	}
 	defer resp.Body.Close()
 
@@ -128,6 +128,6 @@ func (w *Wallet) GetTokenBalances() ([]TokenAddressWithBalance, error) {
 		}
 		return tokensWithBalance, nil
 	} else {
-		return nil, errors.New(resp.Status)
+		return nil, errors.New(resp.Status + ":" + req.URL.String())
 	}
 }

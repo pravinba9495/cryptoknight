@@ -17,7 +17,7 @@ func GetCoinsList() ([]Coin, error) {
 	req.Header.Add("Accept", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(err.Error() + ":" + req.URL.String())
 	}
 	defer resp.Body.Close()
 
@@ -32,7 +32,7 @@ func GetCoinsList() ([]Coin, error) {
 		}
 		return dto, nil
 	} else {
-		return nil, errors.New(resp.Status + ":" + req.RequestURI)
+		return nil, errors.New(resp.Status + ":" + req.URL.String())
 	}
 }
 
@@ -46,7 +46,7 @@ func GetCoinPrice(coinID string) (float64, error) {
 	req.Header.Add("Accept", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, err
+		return 0, errors.New(err.Error() + ":" + req.URL.String())
 	}
 	defer resp.Body.Close()
 
@@ -61,6 +61,6 @@ func GetCoinPrice(coinID string) (float64, error) {
 		}
 		return dto[coinID]["usd"], nil
 	} else {
-		return 0, errors.New(resp.Status + ":" + req.RequestURI)
+		return 0, errors.New(resp.Status + ":" + req.URL.String())
 	}
 }

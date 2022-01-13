@@ -20,7 +20,7 @@ import (
 func main() {
 
 	var address, privateKey, aggregator, stableToken, targetToken string
-	var chainID, days, profit uint64
+	var chainID, days, profit, stop uint64
 	flag.StringVar(&address, "public", "0x0000000000000000000000000000000000000000", "Your wallet public address")
 	flag.StringVar(&privateKey, "private", "", "Your wallet private key")
 	flag.StringVar(&stableToken, "stable", "USDC", "Stable token (ERC20) to use. Example: USDC, USDT, DAI")
@@ -28,19 +28,20 @@ func main() {
 	flag.StringVar(&aggregator, "aggregator", "1INCH", "Aggregator to use. Allowed options: 1INCH, PARASWAP")
 	flag.Uint64Var(&chainID, "chain", 1, "Chain to use. Allowed options: 1 (Ethereum), 10 (Optimism), 56 (Binance Smart Chain), 137 (Polygon/Matic), 42161 (Arbitrum)")
 	flag.Uint64Var(&days, "days", 30, "No. of days to use to calculate pivot points")
-	flag.Uint64Var(&profit, "profit", 15, "Mininum profit percent at which the bot will execute a sell order")
+	flag.Uint64Var(&profit, "profit", 20, "Minimum profit percent at which the bot will execute a sell order")
+	flag.Uint64Var(&stop, "stop", 10, "Loss percent at which the bot will execute a stop loss order")
 	flag.Parse()
 
 	wallet, err := (&models.Wallet{}).New(address, privateKey, chainID)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("error creating wallet")
 	}
 
 	var router *models.Router
 	if aggregator == "1INCH" {
 		r, err := oneinch.New(chainID)
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatalln("error creating router")
 		}
 		router = r
 	}
@@ -70,13 +71,13 @@ func main() {
 
 	client, err := ethclient.Dial(rpc)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("error creating ethclient")
 	}
 	defer client.Close()
 
 	nonce, err := client.PendingNonceAt(context.Background(), *wallet.Address)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error generating nonce")
 	}
 
 	tx := &types.LegacyTx{
@@ -90,7 +91,7 @@ func main() {
 
 	_, err = types.SignNewTx(wallet.PrivateKey, types.LatestSignerForChainID(big.NewInt(int64(wallet.ChainID))), tx)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error signing the transaction")
 	}
 
 	// if err := client.SendTransaction(context.TODO(), signedTx); err != nil {
@@ -102,10 +103,11 @@ func main() {
 		if err := wallet.RefreshWalletBalance(); err != nil {
 			log.Println(err)
 		} else {
-			log.Printf("Wallet Main Balance: %s (wei)", wallet.MainAccountBalance)
 			if err := wallet.RefreshTokenBalances(); err != nil {
 				log.Println(err)
 			} else {
+				log.Printf("Wallet Main Balance: %s (wei)", wallet.MainAccountBalance)
+				log.Printf("Router Contract Address: %s", router.Address.Hex())
 				for _, tokenWithBalance := range wallet.TokensWithBalance {
 					if tokenWithBalance.Balance.Uint64() > 0 || tokenWithBalance.Address.Hex() == stableTokenContractAddress || tokenWithBalance.Address.Hex() == targetTokenContractAddress {
 						symbol := ""
@@ -137,7 +139,7 @@ func main() {
 						if err != nil {
 							log.Println(err)
 						} else {
-							data, err := coingecko.GetMarketChartByCoin(targetCoinID, days)
+							data, err := coingecko.GetMarketChartByCoin(targetCoinID, 365)
 							if err != nil {
 								log.Println(err)
 							} else {
@@ -153,7 +155,7 @@ func main() {
 
 								prices := make([]float64, 0)
 								for i, point := range data.Prices {
-									if i < len(data.Prices)-1 {
+									if i < len(data.Prices)-1 && i >= len(data.Prices)-1-int(days) {
 										if point[1] > 0 {
 											sum += point[1]
 											prices = append(prices, point[1])
@@ -161,23 +163,36 @@ func main() {
 									}
 								}
 
-								days = uint64(len(prices))
+								period := uint64(len(prices))
 
-								if days > 0 {
-									ma = sum / float64(days)
+								if period > 0 {
+									ma = sum / float64(period)
+									recentResistance = currentTokenPrice
 									if len(resistances) > 0 {
-										recentResistance = resistances[len(resistances)-1]
+										for index := len(resistances) - 1; index >= 0; index-- {
+											if currentTokenPrice < resistances[index] {
+												recentResistance = resistances[index]
+												break
+											}
+										}
 									}
+									recentSupport = currentTokenPrice
 									if len(supports) > 0 {
-										recentSupport = supports[len(supports)-1]
+										for index := len(supports) - 1; index >= 0; index-- {
+											if currentTokenPrice > supports[index] {
+												recentSupport = supports[index]
+												break
+											}
+										}
 									}
+
 									upside := ((recentResistance - currentTokenPrice) * 100) / currentTokenPrice
 									downside := ((recentSupport - currentTokenPrice) * 100) / currentTokenPrice
 
-									log.Printf("Current Price: %f $", currentTokenPrice)
-									log.Printf("Recent Resistance (Last %d days): %f $", days, recentResistance)
-									log.Printf("Recent Support (Last %d days): %f $", days, recentSupport)
-									log.Printf("Average Price (Last %d days): %f $", days, ma)
+									log.Printf("Current %s Price: %f $", targetToken, currentTokenPrice)
+									log.Printf("Resistance: %f $", recentResistance)
+									log.Printf("Support: %f $", recentSupport)
+									log.Printf("Average Price (Last %d days): %f $", period, ma)
 									log.Printf("Upside Potential: %.2f%s", upside, "%")
 
 									if downside < 0 {
@@ -196,7 +211,7 @@ func main() {
 				}
 			}
 		}
-		time.Sleep(1 * time.Minute)
+		time.Sleep(30 * time.Second)
 		log.Printf("")
 		log.Printf("")
 		log.Printf("")

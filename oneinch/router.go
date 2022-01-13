@@ -47,10 +47,10 @@ func (r *OneInchRouter) GetHealthStatus() error {
 	req.Header.Add("Accept", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return errors.New(err.Error() + ":" + req.URL.String())
 	}
 	if resp.StatusCode != http.StatusOK {
-		return errors.New(resp.Status)
+		return errors.New(resp.Status + ":" + req.URL.String())
 	}
 	return nil
 }
@@ -65,7 +65,7 @@ func (r *OneInchRouter) GetContractAddress() (*common.Address, error) {
 	req.Header.Add("Accept", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(err.Error() + ":" + req.URL.String())
 	}
 	defer resp.Body.Close()
 
@@ -81,7 +81,7 @@ func (r *OneInchRouter) GetContractAddress() (*common.Address, error) {
 		addr := common.HexToAddress(dto.Address)
 		return &addr, nil
 	} else {
-		return nil, errors.New(resp.Status)
+		return nil, errors.New(resp.Status + ":" + req.URL.String())
 	}
 }
 
@@ -95,7 +95,7 @@ func (r *OneInchRouter) GetSupportedTokens() ([]models.Token, error) {
 	req.Header.Add("Accept", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(err.Error() + ":" + req.URL.String())
 	}
 	defer resp.Body.Close()
 
@@ -116,7 +116,7 @@ func (r *OneInchRouter) GetSupportedTokens() ([]models.Token, error) {
 		r.SupportedTokens = tokens
 		return tokens, nil
 	} else {
-		return nil, errors.New(resp.Status)
+		return nil, errors.New(resp.Status + ":" + req.URL.String())
 	}
 }
 
@@ -138,7 +138,7 @@ func (r *OneInchRouter) GetApprovalTransactionData(params *ApproveCalldataParams
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(err.Error() + ":" + req.URL.String())
 	}
 	defer resp.Body.Close()
 
@@ -153,6 +153,6 @@ func (r *OneInchRouter) GetApprovalTransactionData(params *ApproveCalldataParams
 		}
 		return dto, nil
 	} else {
-		return nil, errors.New(resp.Status)
+		return nil, errors.New(resp.Status + ":" + req.URL.String())
 	}
 }
