@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"log"
+	"math"
 	"math/big"
 	"strings"
 	"time"
@@ -145,8 +146,21 @@ func main() {
 								for _, point := range data.Prices {
 									points = append(points, point[1])
 								}
-								resistances := helpers.CalculateResistanceLevels(points, 6, 2)
-								supports := helpers.CalculateSupportLevels(points, 2, 6)
+
+								var resistances, supports []float64
+								var a, b uint64 = 4, 3
+								for {
+									resistances = helpers.CalculateResistanceLevels(points, a, b)
+									supports = helpers.CalculateSupportLevels(points, a, b)
+									if len(resistances) > 0 && len(supports) > 0 {
+										break
+									} else {
+										a -= 1
+										if a < 2 {
+											log.Fatalln("could not calculate good resiatnce and support values")
+										}
+									}
+								}
 
 								var ma, sum, recentSupport, recentResistance float64
 
@@ -199,13 +213,48 @@ func main() {
 									log.Printf("Support: %f $", recentSupport)
 									log.Printf("Average Price (Last %d days): %f $", period, ma)
 									log.Printf("Upside Potential: %.2f%s", upside, "%")
-
-									log.Printf("Current Status: %s", currentAction)
-
 									if downside < 0 {
 										log.Printf("Downside Potential: %.2f%s", downside, "%")
 									} else {
 										log.Printf("Downside Potential: %.2f%s", 0.0, "%")
+									}
+
+									log.Printf("Current Action: %s", currentAction)
+
+									if currentAction == "WAITING_TO_BUY" {
+
+										cond1 := currentTokenPrice > recentSupport
+										cond2 := currentTokenPrice < recentResistance
+										cond3 := ma > currentTokenPrice
+										cond4 := ma > recentSupport
+										cond5 := ma < recentResistance
+										cond6 := math.Abs(upside) > math.Abs(downside)
+										cond7 := float64(stop) > math.Abs(downside)
+
+										log.Println()
+
+										log.Printf("Token Price Above Support: %v", cond1)
+										log.Printf("Token Price Below Resistance: %v", cond2)
+										log.Printf("Average Above Token Price: %v", cond3)
+										log.Printf("Average Above Support: %v", cond4)
+										log.Printf("Average Below Resistance: %v", cond5)
+										log.Printf("Upside > Downside: %v", cond6)
+										log.Printf("Can Prevent Stop Loss: %v", cond7)
+
+										log.Println()
+
+										if cond1 &&
+											cond2 &&
+											cond3 &&
+											cond4 &&
+											cond5 &&
+											cond6 &&
+											cond7 {
+											log.Println("Good Buy")
+										} else {
+											log.Println("Not Good Buy")
+										}
+
 									}
 
 								} else {
