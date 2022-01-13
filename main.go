@@ -109,7 +109,7 @@ func main() {
 				log.Printf("Wallet Main Balance: %s (wei)", wallet.MainAccountBalance)
 				log.Printf("Router Contract Address: %s", router.Address.Hex())
 				for _, tokenWithBalance := range wallet.TokensWithBalance {
-					if tokenWithBalance.Balance.Uint64() > 0 || tokenWithBalance.Address.Hex() == stableTokenContractAddress || tokenWithBalance.Address.Hex() == targetTokenContractAddress {
+					if tokenWithBalance.Address.Hex() == stableTokenContractAddress || tokenWithBalance.Address.Hex() == targetTokenContractAddress {
 						symbol := ""
 						for _, t := range router.SupportedTokens {
 							if tokenWithBalance.Address.Hex() == t.Address.Hex() {
