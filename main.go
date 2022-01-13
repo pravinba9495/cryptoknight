@@ -208,6 +208,7 @@ func main() {
 										currentAction = "WAITING_TO_BUY"
 									}
 
+									log.Println()
 									log.Printf("Current %s Price: %f $", targetToken, currentTokenPrice)
 									log.Printf("Resistance: %f $", recentResistance)
 									log.Printf("Support: %f $", recentSupport)
@@ -235,9 +236,9 @@ func main() {
 
 										log.Printf("Token Price Above Support: %v", cond1)
 										log.Printf("Token Price Below Resistance: %v", cond2)
-										log.Printf("Average Above Token Price: %v", cond3)
-										log.Printf("Average Above Support: %v", cond4)
-										log.Printf("Average Below Resistance: %v", cond5)
+										log.Printf("Token Price Below Average: %v", cond3)
+										log.Printf("Support Below Average: %v", cond4)
+										log.Printf("Resistance Above Average: %v", cond5)
 										log.Printf("Upside > Downside: %v", cond6)
 										log.Printf("Can Prevent Stop Loss: %v", cond7)
 
