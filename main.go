@@ -34,14 +34,14 @@ func main() {
 
 	wallet, err := (&models.Wallet{}).New(address, privateKey, chainID)
 	if err != nil {
-		log.Fatalln("error creating wallet")
+		log.Fatalln("error creating wallet:" + err.Error())
 	}
 
 	var router *models.Router
 	if aggregator == "1INCH" {
 		r, err := oneinch.New(chainID)
 		if err != nil {
-			log.Fatalln("error creating router")
+			log.Fatalln("error creating router:" + err.Error())
 		}
 		router = r
 	}
@@ -49,14 +49,12 @@ func main() {
 	var stableTokenContractAddress string
 	var targetTokenContractAddress string
 
-	for _, walletToken := range wallet.TokensWithBalance {
-		for _, routerToken := range router.SupportedTokens {
-			if routerToken.Symbol == targetToken && walletToken.Address.Hex() == routerToken.Address.Hex() {
-				targetTokenContractAddress = routerToken.Address.Hex()
-			}
-			if routerToken.Symbol == stableToken && walletToken.Address.Hex() == routerToken.Address.Hex() {
-				stableTokenContractAddress = routerToken.Address.Hex()
-			}
+	for _, routerToken := range router.SupportedTokens {
+		if routerToken.Symbol == targetToken {
+			targetTokenContractAddress = routerToken.Address.Hex()
+		}
+		if routerToken.Symbol == stableToken {
+			stableTokenContractAddress = routerToken.Address.Hex()
 		}
 	}
 
@@ -103,23 +101,22 @@ func main() {
 		if err := wallet.RefreshWalletBalance(); err != nil {
 			log.Println(err)
 		} else {
-			if err := wallet.RefreshTokenBalances(); err != nil {
-				log.Println(err)
+			currentAction := "NOTHING_TO_DO"
+			log.Printf("Wallet Main Balance: %s (wei)", wallet.MainAccountBalance.String())
+			log.Printf("Router Contract Address: %s", router.Address.Hex())
+
+			if err := wallet.GetTokenBalances(stableTokenContractAddress, targetTokenContractAddress); err != nil {
+				log.Println("error in calling contract:" + err.Error())
 			} else {
-				log.Printf("Wallet Main Balance: %s (wei)", wallet.MainAccountBalance)
-				log.Printf("Router Contract Address: %s", router.Address.Hex())
-				for _, tokenWithBalance := range wallet.TokensWithBalance {
-					if tokenWithBalance.Address.Hex() == stableTokenContractAddress || tokenWithBalance.Address.Hex() == targetTokenContractAddress {
-						symbol := ""
-						for _, t := range router.SupportedTokens {
-							if tokenWithBalance.Address.Hex() == t.Address.Hex() {
-								symbol = t.Symbol
-								break
-							}
-						}
-						log.Printf("%s [%s] => %s (wei)", symbol, tokenWithBalance.Address, tokenWithBalance.Balance)
+				for _, t := range router.SupportedTokens {
+					if t.Symbol == targetToken {
+						log.Printf("%s [%s] => %s (wei)", targetToken, t.Address, wallet.TargetCoinBalance.String())
+					}
+					if t.Symbol == stableToken {
+						log.Printf("%s [%s] => %s (wei)", stableToken, t.Address, wallet.StableCoinBalance.String())
 					}
 				}
+
 				coins, err := coingecko.GetCoinsList()
 				if err != nil {
 					log.Println(err)
@@ -189,11 +186,21 @@ func main() {
 									upside := ((recentResistance - currentTokenPrice) * 100) / currentTokenPrice
 									downside := ((recentSupport - currentTokenPrice) * 100) / currentTokenPrice
 
+									if wallet.StableCoinBalance.String() == "0" {
+										currentAction = "WAITING_TO_SELL"
+									}
+
+									if wallet.TargetCoinBalance.String() == "0" {
+										currentAction = "WAITING_TO_BUY"
+									}
+
 									log.Printf("Current %s Price: %f $", targetToken, currentTokenPrice)
 									log.Printf("Resistance: %f $", recentResistance)
 									log.Printf("Support: %f $", recentSupport)
 									log.Printf("Average Price (Last %d days): %f $", period, ma)
 									log.Printf("Upside Potential: %.2f%s", upside, "%")
+
+									log.Printf("Current Status: %s", currentAction)
 
 									if downside < 0 {
 										log.Printf("Downside Potential: %.2f%s", downside, "%")
@@ -210,6 +217,7 @@ func main() {
 					}
 				}
 			}
+
 		}
 		time.Sleep(30 * time.Second)
 		log.Printf("")

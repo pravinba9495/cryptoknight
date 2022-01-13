@@ -3,12 +3,10 @@ package models
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"math/big"
-	"net/http"
+	"os"
+	"os/exec"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -20,8 +18,9 @@ type Wallet struct {
 	ChainID            uint64
 	Address            *common.Address
 	PrivateKey         *ecdsa.PrivateKey
-	MainAccountBalance *big.Int
-	TokensWithBalance  []TokenAddressWithBalance
+	MainAccountBalance big.Int
+	StableCoinBalance  big.Int
+	TargetCoinBalance  big.Int
 }
 
 func (w *Wallet) New(address string, key string, chainID uint64) (*Wallet, error) {
@@ -43,15 +42,10 @@ func (w *Wallet) New(address string, key string, chainID uint64) (*Wallet, error
 		Address:            &addr,
 		PrivateKey:         privateKey,
 		ChainID:            chainID,
-		TokensWithBalance:  nil,
-		MainAccountBalance: big.NewInt(0),
+		StableCoinBalance:  *big.NewInt(0),
+		TargetCoinBalance:  *big.NewInt(0),
+		MainAccountBalance: *big.NewInt(0),
 	}
-
-	tokensWithBalance, err := w.GetTokenBalances()
-	if err != nil {
-		return nil, err
-	}
-	w.TokensWithBalance = tokensWithBalance
 	return w, nil
 }
 
@@ -60,16 +54,61 @@ func (w *Wallet) RefreshWalletBalance() error {
 	if err != nil {
 		return err
 	}
-	w.MainAccountBalance = balance
+	w.MainAccountBalance = *balance
 	return nil
 }
 
-func (w *Wallet) RefreshTokenBalances() error {
-	balances, err := w.GetTokenBalances()
+func (w *Wallet) GetTokenBalances(stableTokenContractAddress string, targetTokenContractAddress string) error {
+	rpc, err := networks.GetRpcURLByChainID(w.ChainID)
 	if err != nil {
 		return err
 	}
-	w.TokensWithBalance = balances
+	client, err := ethclient.Dial(rpc)
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	_, err = os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	_, err = exec.Command("./node-eth", "--address="+w.Address.String(), "--token="+targetTokenContractAddress, "--provider="+rpc).Output()
+	if err != nil {
+		return err
+	}
+	out, err := exec.Command("cat", targetTokenContractAddress+".txt").Output()
+	if err != nil {
+		return err
+	}
+	balance := string(out)
+
+	n := new(big.Int)
+	n, ok := n.SetString(balance, 10)
+	if !ok {
+		return errors.New("SetString: error")
+	}
+
+	w.TargetCoinBalance = *n
+
+	_, err = exec.Command("./node-eth", "--address="+w.Address.String(), "--token="+stableTokenContractAddress, "--provider="+rpc).Output()
+	if err != nil {
+		return err
+	}
+	out, err = exec.Command("cat", stableTokenContractAddress+".txt").Output()
+	if err != nil {
+		return err
+	}
+	balance = string(out)
+
+	n, ok = n.SetString(balance, 10)
+	if !ok {
+		return errors.New("SetString: error")
+	}
+
+	w.StableCoinBalance = *n
+
 	return nil
 }
 
@@ -89,45 +128,4 @@ func (w *Wallet) GetMainAccountBalance() (*big.Int, error) {
 		return nil, err
 	}
 	return balance, nil
-}
-
-func (w *Wallet) GetTokenBalances() ([]TokenAddressWithBalance, error) {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://balances.1inch.io/v1.1/"+fmt.Sprint(w.ChainID)+"/balances/"+w.Address.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Add("Accept", "application/json")
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, errors.New(err.Error() + ":" + req.URL.String())
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusOK {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-		var dto map[string]string
-		if err := json.Unmarshal(body, &dto); err != nil {
-			return nil, err
-		}
-		tokensWithBalance := make([]TokenAddressWithBalance, 0)
-		for token, balance := range dto {
-			tokenAddr := common.HexToAddress(token)
-			tokenBalance := big.NewInt(0)
-			n, ok := tokenBalance.SetString(balance, 10)
-			if !ok {
-				return nil, errors.New("cannot convert string to *big.Int")
-			}
-			tokensWithBalance = append(tokensWithBalance, TokenAddressWithBalance{
-				Address: &tokenAddr,
-				Balance: n,
-			})
-		}
-		return tokensWithBalance, nil
-	} else {
-		return nil, errors.New(resp.Status + ":" + req.URL.String())
-	}
 }

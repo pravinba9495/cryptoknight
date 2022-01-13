@@ -1,1 +1,5 @@
-bin
+**/bin
+**/node_modules
+node-eth
+kryptonite
+**/*.txt
