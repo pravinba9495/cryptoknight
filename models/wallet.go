@@ -16,11 +16,6 @@ import (
 	"github.com/pravinba9495/kryptonite/networks"
 )
 
-type TokenAddressWithBalance struct {
-	Address *common.Address
-	Balance *big.Int
-}
-
 type Wallet struct {
 	ChainID            uint64
 	Address            *common.Address
