@@ -31,16 +31,16 @@ func (w *Wallet) New(address string, privateKey string, chainID uint64) (*Wallet
 	if err != nil {
 		return nil, err
 	}
-	// publicKey := pKey.Public()
-	// publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	// if !ok {
-	// 	return nil, errors.New("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-	// }
-	// addrPublic := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
-	// if addrPublic != address {
-	// 	return nil, errors.New("public key and private key don't match with each other")
-	// }
-	addr := common.HexToAddress(address)
+	publicKey := pKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		return nil, errors.New("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
+	}
+	addrPublic := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+	if addrPublic != address {
+		return nil, errors.New("public key and private key don't match with each other")
+	}
+	addr := common.HexToAddress(addrPublic)
 	w = &Wallet{
 		Address:            &addr,
 		PrivateKey:         pKey,
