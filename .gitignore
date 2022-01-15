@@ -2,3 +2,5 @@
 **/node_modules
 **/*.log
 **/*.txt
+**/node-eth
+**/kryptonite

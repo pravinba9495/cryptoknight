@@ -1,0 +1,17 @@
+{
+  "name": "eth",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pkg": "pkg -t host index.js --output node-eth",
+    "docker": "pkg -t node14-alpine-x64 index.js --output bin/node-eth"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pkg": "^5.5.1",
+    "web3": "^1.6.1"
+  }
+}
