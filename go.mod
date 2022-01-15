@@ -7,7 +7,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/google/go-querystring v1.1.0
 	github.com/pravinba9495/go-telegram v1.0.0
-	github.com/pravinba9495/logger v0.0.3
 )
 
 require (
@@ -16,7 +15,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/deckarep/golang-set v0.0.0-20180603214616-504e848d77ea // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-ole/go-ole v1.2.1 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
