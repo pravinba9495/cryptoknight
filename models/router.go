@@ -416,12 +416,12 @@ func (r *Router) DoSwap(w *Wallet, fromTokenContractAddress string, fromTokenBal
 		time.Sleep(5 * time.Second)
 	}
 
-	params := &QuoteParamsDto{
+	quoteParams := &QuoteParamsDto{
 		FromTokenAddress: fromTokenContractAddress,
 		ToTokenAddress:   toTokenContractAddress,
 		Amount:           fromTokenBalance.String(),
 	}
-	quoteResDto, err := r.GetQuote(r.ChainID, params)
+	quoteResDto, err := r.GetQuote(r.ChainID, quoteParams)
 	if err != nil {
 		return err
 	}
