@@ -196,24 +196,12 @@ func main() {
 													bot.ErrorChannel <- err
 													log.Println(err)
 												} else {
-													bot.ErrorChannel <- err
-													log.Println(err)
-													err = errors.New("Bot is now going to die.")
-													bot.ErrorChannel <- err
-													log.Println(err)
-													time.Sleep(5 * time.Second)
-													os.Exit(1)
+													Die(err)
 												}
 											} else {
 												_, err := rdb.Set(context.TODO(), strings.ToLower(targetToken)+":previousTokenPrice", currentTokenPrice, 0).Result()
 												if err != nil {
-													bot.ErrorChannel <- err
-													log.Println(err)
-													err = errors.New("Bot is now going to die.")
-													bot.ErrorChannel <- err
-													log.Println(err)
-													time.Sleep(5 * time.Second)
-													os.Exit(1)
+													Die(err)
 												}
 											}
 										} else {
@@ -247,24 +235,12 @@ func main() {
 															bot.ErrorChannel <- err
 															log.Println(err)
 														} else {
-															bot.ErrorChannel <- err
-															log.Println(err)
-															err = errors.New("Bot is now going to die.")
-															bot.ErrorChannel <- err
-															log.Println(err)
-															time.Sleep(5 * time.Second)
-															os.Exit(1)
+															Die(err)
 														}
 													} else {
 														_, err := rdb.Set(context.TODO(), strings.ToLower(targetToken)+":previousTokenPrice", 0, 0).Result()
 														if err != nil {
-															bot.ErrorChannel <- err
-															log.Println(err)
-															err = errors.New("Bot is now going to die.")
-															bot.ErrorChannel <- err
-															log.Println(err)
-															time.Sleep(5 * time.Second)
-															os.Exit(1)
+															Die(err)
 														}
 													}
 												} else {
@@ -287,4 +263,14 @@ func main() {
 			time.Sleep(1 * time.Minute)
 		}
 	}
+}
+
+func Die(err error) {
+	bot.ErrorChannel <- err
+	log.Println(err)
+	err = errors.New("Bot is now going to die.")
+	bot.ErrorChannel <- err
+	log.Println(err)
+	time.Sleep(5 * time.Second)
+	os.Exit(1)
 }
