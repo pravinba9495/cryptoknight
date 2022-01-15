@@ -148,19 +148,19 @@ func (w *Wallet) SendTransaction(toAddress *common.Address, tx *types.LegacyTx) 
 		return nil, err
 	}
 	defer client.Close()
-	// nonce, err := client.PendingNonceAt(context.Background(), *w.Address)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// tx := &types.LegacyTx{
-	// 	Nonce:    nonce,
-	// 	Gas:      21000,
-	// 	GasPrice: big.NewInt(30000000000),
-	// 	To:       toAddress,
-	// 	Value:    big.NewInt(0),
-	// 	Data:     []byte(""),
-	// }
-	signedTx, err := types.SignNewTx(w.PrivateKey, types.LatestSignerForChainID(big.NewInt(int64(w.ChainID))), tx)
+	nonce, err := client.PendingNonceAt(context.Background(), *w.Address)
+	if err != nil {
+		return nil, err
+	}
+	t := &types.LegacyTx{
+		Nonce:    nonce,
+		GasPrice: tx.GasPrice,
+		Gas:      tx.Gas,
+		To:       tx.To,
+		Value:    big.NewInt(0),
+		Data:     tx.Data,
+	}
+	signedTx, err := types.SignNewTx(w.PrivateKey, types.LatestSignerForChainID(big.NewInt(int64(w.ChainID))), t)
 	if err != nil {
 		return nil, err
 	}

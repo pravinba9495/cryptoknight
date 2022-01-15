@@ -5,10 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math"
+	"math/big"
 	"net/http"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/google/go-querystring/query"
+	"github.com/pravinba9495/kryptonite/bot"
 	"github.com/pravinba9495/kryptonite/constants"
 )
 
@@ -346,5 +351,138 @@ func (r *Router) GetSwapData(chainID uint64, params *SwapParamsDto) (*SwapRespon
 		return dto, nil
 	} else {
 		return nil, errors.New(resp.Status + ":" + req.URL.String() + ":" + string(body))
+	}
+}
+
+// DoSwap prepares for a swap, waits for admin confirmation and proceeds for a swap
+func (r *Router) DoSwap(w *Wallet, fromTokenContractAddress string, fromTokenBalance *big.Int, toTokenContractAddress string) error {
+
+	accessRequestApproved := false
+
+	for {
+		allowanceDto, err := r.GetApprovedAllowance(r.ChainID, fromTokenContractAddress, w.Address.Hex())
+		if err != nil {
+			return err
+		}
+		allowance := new(big.Int)
+		n, ok := allowance.SetString(allowanceDto.Allowance, 10)
+		if !ok {
+			err := "cannot convert string to big.Int"
+			return errors.New(err)
+		}
+		allowance = n
+		if allowance.Cmp(fromTokenBalance) > -1 {
+			break
+		} else {
+			for !accessRequestApproved {
+				bot.OutboundChannel <- "To proceed for a swap, the token contract must be allowed to access the required amount of tokens from your wallet.\n\nReply 'yes' to apprive this request\nReply 'no' to decline this request.\n\nThe approval request will auto expire in 30 seconds."
+				bot.IsWaitingConfirmation = true
+				go func() {
+					time.Sleep(30 * time.Second)
+					if bot.IsWaitingConfirmation {
+						bot.ConfirmationChannel <- false
+						bot.IsWaitingConfirmation = false
+					}
+				}()
+
+				reply := <-bot.ConfirmationChannel
+				bot.IsWaitingConfirmation = false
+				if reply {
+					accessRequestApproved = true
+					dto, err := r.GetApproveAllowanceData(fromTokenContractAddress, fromTokenBalance.String())
+					if err != nil {
+						return err
+					}
+					toAddress := common.HexToAddress(fromTokenContractAddress)
+					gasPrice := new(big.Int)
+					gP, ok := gasPrice.SetString(dto.GasPrice, 10)
+					if !ok {
+						err := "cannot convert string to big.Int"
+						return errors.New(err)
+					}
+					_, err = w.SendTransaction(&toAddress, &types.LegacyTx{
+						GasPrice: gP,
+						To:       &toAddress,
+						Data:     []byte(dto.Data),
+					})
+					if err != nil {
+						return errors.New("Token Access Approval Transaction Error: " + err.Error())
+					}
+				} else {
+					return errors.New("REQUEST_EXPIRED_OR_DECLINED")
+				}
+			}
+		}
+		time.Sleep(5 * time.Second)
+	}
+
+	params := &QuoteParamsDto{
+		FromTokenAddress: fromTokenContractAddress,
+		ToTokenAddress:   toTokenContractAddress,
+		Amount:           fromTokenBalance.String(),
+	}
+	quoteResDto, err := r.GetQuote(r.ChainID, params)
+	if err != nil {
+		return err
+	}
+
+	swapParams := &SwapParamsDto{
+		FromTokenAddress: fromTokenContractAddress,
+		ToTokenAddress:   toTokenContractAddress,
+		Amount:           fromTokenBalance.String(),
+		FromAddress:      w.Address.Hex(),
+		Slippage:         "1",
+		GasLimit:         fmt.Sprint(quoteResDto.EstimatedGas),
+		DisableEstimate:  false,
+	}
+	swapResDto, err := r.GetSwapData(r.ChainID, swapParams)
+	if err != nil {
+		return err
+	}
+
+	fbalance1 := new(big.Float)
+	fbalance1.SetString(swapResDto.FromTokenAmount)
+	fromValue := new(big.Float).Quo(fbalance1, big.NewFloat(math.Pow10(int(swapResDto.FromToken.Decimals))))
+
+	fbalance2 := new(big.Float)
+	fbalance2.SetString(swapResDto.ToTokenAmount)
+	toValue := new(big.Float).Quo(fbalance2, big.NewFloat(math.Pow10(int(swapResDto.ToToken.Decimals))))
+
+	swapStr := fmt.Sprintf("%f %s => %f %s", fromValue, swapResDto.FromToken.Symbol, toValue, swapResDto.ToToken.Symbol)
+	str := fmt.Sprintf("\n\nDate: %s\nOrder Type: %s\n\n%s\n\n", time.Now().Format(time.RFC822), "BUY", swapStr)
+
+	bot.OutboundChannel <- str
+	bot.OutboundChannel <- "Reply 'yes' to confirm\nReply 'no' to decline the swap.\n\nThe swap request will auto expire in 30 seconds."
+	bot.IsWaitingConfirmation = true
+	go func() {
+		time.Sleep(30 * time.Second)
+		if bot.IsWaitingConfirmation {
+			bot.ConfirmationChannel <- false
+			bot.IsWaitingConfirmation = false
+		}
+	}()
+
+	reply := <-bot.ConfirmationChannel
+	bot.IsWaitingConfirmation = false
+	if reply {
+		toAddress := common.HexToAddress(swapResDto.Tx.To)
+		gasPrice := new(big.Int)
+		gP, ok := gasPrice.SetString(swapResDto.Tx.GasPrice, 10)
+		if !ok {
+			err := "cannot convert string to big.Int"
+			return errors.New(err)
+		}
+		_, err = w.SendTransaction(r.Address, &types.LegacyTx{
+			GasPrice: gP,
+			Gas:      swapResDto.Tx.Gas,
+			To:       &toAddress,
+			Data:     []byte(swapResDto.Tx.Data),
+		})
+		if err != nil {
+			return errors.New("Swap Transaction Error: " + err.Error())
+		}
+		return nil
+	} else {
+		return errors.New("REQUEST_EXPIRED_OR_DECLINED")
 	}
 }
