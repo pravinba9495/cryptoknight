@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/pravinba9495/go-telegram"
@@ -57,11 +58,11 @@ func Run(botToken string, password string) {
 						ChatID = lastChatId
 						OutboundChannel <- "🎉 You are now authorized to receive communication through the bot."
 						OutboundChannel <- "Your chatId: " + ChatID + ".\n\nRestart the docker container by adding --chatId=" + ChatID + " command line argument to automatically authorize yourself whenever the bot runs."
-					} else if lastMsg == "yes" && lastChatId == ChatID {
+					} else if strings.ToLower(lastMsg) == "yes" && lastChatId == ChatID {
 						if IsWaitingConfirmation {
 							ConfirmationChannel <- true
 						}
-					} else if lastMsg == "no" && lastChatId == ChatID {
+					} else if strings.ToLower(lastMsg) == "no" && lastChatId == ChatID {
 						if IsWaitingConfirmation {
 							ConfirmationChannel <- false
 						}
