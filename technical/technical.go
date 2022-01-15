@@ -22,15 +22,19 @@ func IsASell(previousTokenPrice float64, currentTokenPrice float64, movingAverag
 		// Profit Taking
 		if float64(profitPercent) < currentProfitOrLossPercent && math.Abs(upside) < 2 {
 			return true, "Profit", currentProfitOrLossPercent
+		} else {
+			// HODL
+			return false, "Current Profit (Unrealized)", currentProfitOrLossPercent
 		}
 	} else {
 		// Stop Loss
 		if float64(stopLoss) < currentProfitOrLossPercent {
 			return true, "Stop Loss", currentProfitOrLossPercent
+		} else {
+			// HODL
+			return true, "Current Loss (Unrealized)", currentProfitOrLossPercent
 		}
 	}
-
-	return false, "Unknown", 0.00
 }
 
 func IsABuy(currentTokenPrice float64, movingAverage float64, recentSupport float64, recentResistance float64, profitPercent int64, stopLossPercent int64) (bool, float64, float64) {
