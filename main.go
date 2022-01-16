@@ -49,12 +49,12 @@ func main() {
 	if privateKey == "" {
 		err := "privateKey is not provided"
 		log.Fatalln(err)
-		bot.ErrorChannel <- errors.New(err)
+		bot.OutboundChannel <- err
 	}
 
 	if redisAddress == "" {
 		err := "redis address is not provided"
-		bot.ErrorChannel <- errors.New(err)
+		bot.OutboundChannel <- err
 		log.Fatalln(err)
 	}
 
@@ -65,28 +65,28 @@ func main() {
 
 	// Check redis ping
 	if err := rdb.Ping(context.TODO()).Err(); err != nil {
-		bot.ErrorChannel <- err
+		bot.OutboundChannel <- err.Error()
 		log.Fatalln(err)
 	}
 
 	// Initialize wallet
 	wallet, err := (&models.Wallet{}).New(address, privateKey, chainID)
 	if err != nil {
-		bot.ErrorChannel <- err
+		bot.OutboundChannel <- err.Error()
 		log.Fatalln(err)
 	}
 
 	// Initialize swap router
 	router, err := (&models.Router{}).New(chainID)
 	if err != nil {
-		bot.ErrorChannel <- err
+		bot.OutboundChannel <- err.Error()
 		log.Fatalln(err)
 	}
 
 	// Get coin list from CoinGecko
 	coins, err := coingecko.GetCoinsList()
 	if err != nil {
-		bot.ErrorChannel <- err
+		bot.OutboundChannel <- err.Error()
 		log.Fatalln(err)
 	}
 
@@ -99,14 +99,14 @@ func main() {
 	}
 	if targetCoinID == "" {
 		err := "coin could not be found"
-		bot.ErrorChannel <- errors.New(err)
+		bot.OutboundChannel <- err
 		log.Fatalln(err)
 	}
 
 	stableTokenContractAddress, targetTokenContractAddress := helpers.GetTokenAddress(router, stableToken), helpers.GetTokenAddress(router, targetToken)
 	if stableTokenContractAddress == "" || targetTokenContractAddress == "" {
 		err := "token pair does not exist on this chain/network/router"
-		bot.ErrorChannel <- errors.New(err)
+		bot.OutboundChannel <- err
 		log.Fatalln(err)
 	} else {
 		currentStatus := "UNKNOWN"
@@ -116,7 +116,7 @@ func main() {
 
 			// Refresh wallet balance periodically
 			if err := wallet.RefreshWalletBalance(); err != nil {
-				bot.ErrorChannel <- err
+				bot.OutboundChannel <- err.Error()
 				log.Println(err)
 			} else {
 
@@ -126,7 +126,7 @@ func main() {
 
 				// Refresh ERC20 token balances
 				if err := wallet.RefreshTokenBalances(stableTokenContractAddress, targetTokenContractAddress); err != nil {
-					bot.ErrorChannel <- err
+					bot.OutboundChannel <- err.Error()
 					log.Println(err)
 				} else {
 
@@ -146,14 +146,14 @@ func main() {
 					// Get current token price
 					currentTokenPrice, err := coingecko.GetCoinPrice(targetCoinID)
 					if err != nil {
-						bot.ErrorChannel <- err
+						bot.OutboundChannel <- err.Error()
 						log.Println(err)
 					} else {
 
 						// Get market history of the token since the last 1 year
 						data, err := coingecko.GetMarketChartByCoin(targetCoinID, 365)
 						if err != nil {
-							bot.ErrorChannel <- err
+							bot.OutboundChannel <- err.Error()
 							log.Println(err)
 						} else {
 
@@ -165,7 +165,7 @@ func main() {
 							// Calculate pivot points
 							supports, resistances, err := technical.GetSupportsAndResistances(oneYearPoints)
 							if err != nil {
-								bot.ErrorChannel <- err
+								bot.OutboundChannel <- err.Error()
 								log.Println(err)
 							} else {
 
@@ -193,7 +193,7 @@ func main() {
 											if err := router.DoSwap(wallet, stableTokenContractAddress, wallet.StableCoinBalance, targetTokenContractAddress); err != nil {
 												if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
 													err = errors.New("Request expired/declined")
-													bot.ErrorChannel <- err
+													bot.OutboundChannel <- err.Error()
 													log.Println(err)
 												} else {
 													Die(err)
@@ -212,13 +212,13 @@ func main() {
 										// Get the price at which the token was last bought
 										v, err := rdb.Get(context.TODO(), strings.ToLower(targetToken)+":previousTokenPrice").Result()
 										if err != nil {
-											bot.ErrorChannel <- err
+											bot.OutboundChannel <- err.Error()
 											log.Println(err)
 										} else {
 											// Convert price from string to float64
 											previousTokenPrice, err := strconv.ParseFloat(v, 64)
 											if err != nil {
-												bot.ErrorChannel <- err
+												bot.OutboundChannel <- err.Error()
 												log.Println(err)
 											} else {
 												// Check if currentTokenPrice is a SELL based on technical analysis, previousTokenPrice, profitPercent and stopLossPercent
@@ -232,7 +232,7 @@ func main() {
 													if err := router.DoSwap(wallet, targetTokenContractAddress, wallet.TargetCoinBalance, stableTokenContractAddress); err != nil {
 														if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
 															err = errors.New("Request expired/declined")
-															bot.ErrorChannel <- err
+															bot.OutboundChannel <- err.Error()
 															log.Println(err)
 														} else {
 															Die(err)
@@ -266,10 +266,10 @@ func main() {
 }
 
 func Die(err error) {
-	bot.ErrorChannel <- err
+	bot.OutboundChannel <- err.Error()
 	log.Println(err)
 	err = errors.New("Bot is now going to die.")
-	bot.ErrorChannel <- err
+	bot.OutboundChannel <- err.Error()
 	log.Println(err)
 	time.Sleep(5 * time.Second)
 	os.Exit(1)
