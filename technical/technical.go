@@ -43,7 +43,7 @@ func IsABuy(currentTokenPrice float64, movingAverage float64, recentSupport floa
 
 	cond1 := currentTokenPrice > recentSupport
 	cond2 := currentTokenPrice < recentResistance
-	cond3 := currentTokenPrice < (recentSupport + (0.05 * recentSupport))
+	cond3 := currentTokenPrice < (recentSupport + (0.02 * recentSupport))
 	cond4 := movingAverage > recentSupport
 	cond5 := movingAverage < recentResistance
 	cond6 := math.Abs(upside) > math.Abs(downside)
