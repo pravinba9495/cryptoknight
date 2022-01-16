@@ -6,7 +6,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/pravinba9495/kryptonite.svg)](https://pkg.go.dev/github.com/pravinba9495/kryptonite) ![Go Report Card](https://goreportcard.com/badge/github.com/pravinba9495/kryptonite) ![Issues](https://img.shields.io/github/issues-raw/pravinba9495/kryptonite) ![License](https://img.shields.io/github/license/pravinba9495/kryptonite) ![Release](https://img.shields.io/github/v/release/pravinba9495/kryptonite?include_prereleases)
 
-Automated crypto swapping bot, written in Go. Supports swapping on Ethereum, BSC, Polygon, Optimisim and Arbitrum networks using 1inch AggregatorV4 router. Under active development.
+Automated crypto swapping bot, written in Go. Supports multiple protocols like Uniswap, Curve, SushiSwap, Balancer, etc using 1inch AggregatorV4 router. Under active development.
 
 **Not production ready yet**
 
@@ -34,8 +34,8 @@ Think of Kryptonite as an "Autopilot for Crypto Swapping". Kryptonite does not e
 ## Features
 - Performs technical analysis every minute
 - Bundled with a webserver UI to view past swaps, current metrics and portfolio performance so far
-- Execute Buy or Sell orders using manual confirmations from you via the telegram bot
-- Execute Buy or Sell automatically based on technical analysis
+- Executes Buy or Sell orders using manual confirmations from you via the telegram bot
+- Executes Buy or Sell automatically based on technical analysis
 - Supports multiple protocols like Uniswap, Curve, SushiSwap, Balancer, etc using the 1inch Aggregation protocol API
 
 ## Setup
