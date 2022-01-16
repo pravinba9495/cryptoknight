@@ -8,14 +8,17 @@
 
 Automated crypto swapping bot, written in Go. Supports swapping on Ethereum, BSC, Polygon, Optimisim and Arbitrum networks using 1inch AggregatorV4 router. Under active development.
 
+**Not production ready yet**
+
 ## Table of Contents
 - [Introduction](#introduction)
+- [Features](#features)
+- [Benchmarks](#benchmarks)
 - [Setup](#setup)
   - [Requirements](#requirements)
   - [Parameters](#parameters)
   - [Usage](#usage)
 - [Instructions](#instructions)
-- [Benchmarks](#benchmarks)
 - [Documentation](#documentation)
 - [Development](#development)
 - [Maintainers](#maintainers)
@@ -24,9 +27,16 @@ Automated crypto swapping bot, written in Go. Supports swapping on Ethereum, BSC
 ## Introduction
 This project started as a hobby to figure out a way to keep an eye on the crypto market while juggling my day job. The Crypto market is highly volatile. Cryptocurrencies can fluctuate in price drastically within seconds you have your eyes off the screen. Unless you are a trader by profession, you cannot actively manage your portfolio, or make any meaningful and profitable moves or prevent a loss. For people with crypto assets in a self-owned wallet (not on exchanges like Coinbase or Binance), you can swap your tokens for stable coins to prevent losses. This still requires you to pay constant attention to the market, which is not an easy task for everyone. What if there was a way to protect your crypto investment from major pullbacks like the one everyone witnessed in November 2021?
 
-With Kryptonite, you can now automatically set limit buy/sell and stop-loss orders, like a watchdog protecting your crypto assets from losses, even while you are sleeping. Kryptonite does technical analysis for you on the fly, every day, every minute. It uses historical as well as real-time data to calculate reasonable support and resistance levels and places its trades accordingly. It can react to a market crash more swiftly than any human could. Importantly, Kryptonite strives to reduce your anxiety levels in an uncertain and rigged market.
+With Kryptonite, you can now automatically set limit buy/sell and stop-loss orders, like a watchdog protecting your crypto assets from losses, even while you are sleeping. Kryptonite does technical analysis for you on the fly, every day, every minute. It uses historical as well as real-time data to calculate reasonable support and resistance levels and places its swap order accordingly. It can react to a market crash more swiftly than any human could. Importantly, Kryptonite strives to reduce your anxiety levels in an uncertain and rigged market.
 
-Think of Kryptonite as an "Autopilot for Crypto Trading". Kryptonite does not execute trades on exchanges like Coinbase and Binance, simply because you cannot access your wallet's private key. Private keys are required by Kryptonite to execute an order on your behalf.
+Think of Kryptonite as an "Autopilot for Crypto Swapping". Kryptonite does not execute swaps on exchanges like Coinbase and Binance, simply because you cannot access your wallet's private key. Private keys are required by Kryptonite to execute an order on your behalf.
+
+## Features
+- Performs technical analysis every minute
+- Bundled with a webserver UI to view past swaps, current metrics and portfolio performance so far
+- Execute Buy or Sell orders using manual confirmations from you via the telegram bot
+- Execute Buy or Sell automatically based on technical analysis
+- Supports multiple protocols like Uniswap, Curve, SushiSwap, Balancer, etc using the 1inch Aggregation protocol API
 
 ## Setup
 
@@ -154,7 +164,6 @@ docker run -d pravinba9495/kryptonite:latest kryptonite \
                 --profitPercent=<PROFIT_PERCENT> \
                 --stopLossPercent=<STOP_LOSS_PERCENT>
 ```
-## Instructions
 
 ## Benchmarks
 
