@@ -46,14 +46,14 @@ The following command line parameters are supported.
 <td>--privateKey</td>
 <td>Your wallet private key</td>
 <td>string</td>
-<td>empty</td>
+<td></td>
 </tr>
 
 <tr>
 <td>--publicKey</td>
 <td>Your wallet public address</td>
 <td>string</td>
-<td>0x0000000000000000000000000000000000000000</td>
+<td></td>
 </tr>
 
 <tr>
@@ -81,21 +81,21 @@ The following command line parameters are supported.
 <td>--redisAddress</td>
 <td>Redis server host. Example: 192.168.1.100:6379</td>
 <td>string</td>
-<td>empty</td>
+<td></td>
 </tr>
 
 <tr>
 <td>--botToken</td>
 <td>Telegram Bot Token used to send and receive transaction confirmations</td>
 <td>string</td>
-<td>empty</td>
+<td></td>
 </tr>
 
 <tr>
 <td>--chatId</td>
 <td>Your telegram chat id. You will receive this when you authorize yourself with the bot for the first time.</td>
 <td>string</td>
-<td>empty</td>
+<td></td>
 </tr>
 
 <tr>
