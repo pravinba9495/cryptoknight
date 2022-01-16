@@ -147,7 +147,7 @@ The following command line parameters are supported.
 
 <tr>
 <td>mode</td>
-<td>Mode of operation. Allowed options: 'MANUAL', 'AUTO'</td>
+<td>Mode of operation. Allowed options: MANUAL, AUTO</td>
 <td>string</td>
 <td>MANUAL</td>
 </tr>
