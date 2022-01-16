@@ -38,6 +38,8 @@ Think of Kryptonite as an "Autopilot for Crypto Swapping". Kryptonite does not e
 - Executes Buy or Sell automatically based on technical analysis
 - Supports multiple protocols like Uniswap, Curve, SushiSwap, Balancer, etc using the 1inch Aggregation protocol API
 
+## Benchmarks
+
 ## Setup
 
 ### Requirements
@@ -164,8 +166,6 @@ docker run -d pravinba9495/kryptonite:latest kryptonite \
                 --profitPercent=<PROFIT_PERCENT> \
                 --stopLossPercent=<STOP_LOSS_PERCENT>
 ```
-
-## Benchmarks
 
 ## Disclaimer
 By using Kryptonite, you understand and agree that there might be bugs in the code that could potentially lead to financial loss. You and only you are responsible for the use of this tool and any financial loss that it may cause. Nobody else shall be held accountable in this regard. Stop using this tool if you do not agree to this. Do conduct your own due diligence and consult your financial advisor before making any investment decisions.
