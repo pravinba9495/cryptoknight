@@ -176,7 +176,10 @@ Kryptonite documentation is hosted at [Read the docs](https://pkg.go.dev/github.
 ## Development
 Kryptonite is still under active development. Contributions are always welcome!
 
-## Maintainers
-* [@pravinba9495](https://github.com/pravinba9495)
+## Contributors
+<a href="https://github.com/pravinba9495/kryptonite/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=pravinba9495/kryptonite" />
+</a>
+
 ## License
 MIT
