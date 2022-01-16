@@ -33,7 +33,7 @@ Think of Kryptonite as an "Autopilot for Crypto Swapping". Kryptonite does not e
 
 ## Features
 - Performs technical analysis every minute
-- Bundled with a webserver UI to view past swaps, current metrics and portfolio performance so far
+- Bundled with a webserver UI to view past swaps, current metrics and portfolio performance so far *(under development)*
 - Executes Buy or Sell orders using manual confirmations from you via the telegram bot
 - Executes Buy or Sell automatically based on technical analysis
 - Supports multiple protocols like Uniswap, Curve, SushiSwap, Balancer, etc using the 1inch Aggregation protocol API
@@ -145,6 +145,13 @@ The following command line parameters are supported.
 <td>25</td>
 </tr>
 
+<tr>
+<td>mode</td>
+<td>Mode of operation. Allowed options: 'MANUAL', 'AUTO'</td>
+<td>string</td>
+<td>MANUAL</td>
+</tr>
+
 </tbody>
 </table>
 
@@ -164,7 +171,8 @@ docker run -d --name kryptonite pravinba9495/kryptonite:latest kryptonite \
                 --password=<PASSWORD> \
                 --days=<DAYS> \
                 --profitPercent=<PROFIT_PERCENT> \
-                --stopLossPercent=<STOP_LOSS_PERCENT>
+                --stopLossPercent=<STOP_LOSS_PERCENT> \
+                --mode=<MODE_OF_OPERATION>
 ```
 
 ## Disclaimer
