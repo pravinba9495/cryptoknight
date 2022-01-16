@@ -417,6 +417,7 @@ func (r *Router) DoSwap(w *Wallet, fromTokenContractAddress string, fromTokenBal
 				}
 			}
 		}
+		bot.OutboundChannel <- "Refreshing token allowance"
 		time.Sleep(5 * time.Second)
 	}
 

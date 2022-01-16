@@ -18,6 +18,7 @@ import (
 	"github.com/pravinba9495/kryptonite/helpers"
 	"github.com/pravinba9495/kryptonite/models"
 	"github.com/pravinba9495/kryptonite/technical"
+	"github.com/pravinba9495/kryptonite/variables"
 )
 
 func main() {
@@ -186,6 +187,10 @@ func main() {
 									recentSupport, recentResistance := technical.GetRecentSupportAndResistance(currentTokenPrice, supports, resistances)
 									log.Print(fmt.Sprintf("Current Status: %s", currentStatus))
 
+									variables.CurrentStatus = currentStatus
+									variables.Verdict = "Verdict => Nothing to do"
+									str := ""
+
 									// Check if current status is WAITING_TO_BUY/WAITING_TO_SELL/UNKNOWN
 									if currentStatus == "WAITING_TO_BUY" && wallet.StableCoinBalance.Cmp(big.NewInt(0)) > 0 {
 
@@ -195,8 +200,7 @@ func main() {
 										// If currentTokenPrice is a BUY
 										if bool {
 											// Print stats
-											log.Print(fmt.Sprintf("Verdict => BUY (Upside: +%.2f%s, Downside: %.2f%s)", upside, "%", downside, "%"))
-											log.Println("Waiting for transaction confirmation from admin/blockchain")
+											str = fmt.Sprintf("Verdict => BUY (Upside: +%.2f%s, Downside: %.2f%s)", upside, "%", downside, "%")
 											if err := router.DoSwap(wallet, stableTokenContractAddress, wallet.StableCoinBalance, targetTokenContractAddress, mode); err != nil {
 												if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
 													err = errors.New("Request expired/declined")
@@ -213,8 +217,9 @@ func main() {
 											}
 										} else {
 											// currentTokenPrice is not a BUY, HODL
-											log.Print(fmt.Sprintf("Verdict => HODL (Upside: +%.2f%s, Downside: %.2f%s)", upside, "%", downside, "%"))
+											str = "Verdict => HODL"
 										}
+										str = fmt.Sprintf("%s\n\nCurrent Price: $%f\nAverage Price: $%f\nRecent Support: $%f\nRecent Resistance: $%f\nUpside: +%f%s\nDownside: %f%s\n", str, currentTokenPrice, movingAverage, recentSupport, recentResistance, upside, "%", downside, "%")
 									} else if currentStatus == "WAITING_TO_SELL" && wallet.TargetCoinBalance.Cmp(big.NewInt(0)) == 1 {
 										// Get the price at which the token was last bought
 										v, err := rdb.Get(context.TODO(), strings.ToLower(targetToken)+":previousTokenPrice").Result()
@@ -234,8 +239,7 @@ func main() {
 												// If currentTokenPrice is a SELL
 												if isASell {
 													// Print stats
-													log.Print(fmt.Sprintf("Verdict => SELL (%s: %.2f%s)", typ, value, "%"))
-													log.Println("Waiting for transaction confirmation from admin/blockchain")
+													str = fmt.Sprintf("Verdict => SELL (%s: %.2f%s)", typ, value, "%")
 													if err := router.DoSwap(wallet, targetTokenContractAddress, wallet.TargetCoinBalance, stableTokenContractAddress, mode); err != nil {
 														if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
 															err = errors.New("Request expired/declined")
@@ -252,14 +256,14 @@ func main() {
 													}
 												} else {
 													// currentTokenPrice is not a SELL, HODL
-													log.Print(fmt.Sprintf("Verdict => HODL (%s: %.2f%s)", typ, value, "%"))
+													str = "Verdict => HODL"
 												}
+												str = fmt.Sprintf("%s\n\nCurrent Price: $%f\nAverage Price: $%f\nRecent Support: $%f\nRecent Resistance: $%f\n%s: %f%s\n", str, currentTokenPrice, movingAverage, recentSupport, recentResistance, typ, value, "%")
 											}
 										}
-									} else {
-										// Unable to determine what to do
-										log.Print("Verdict => Nothing to do")
 									}
+									variables.Verdict = str
+									log.Println(variables.Verdict)
 								}
 							}
 						}
