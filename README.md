@@ -1,11 +1,20 @@
-# kryptonite
+<p align="center">
+  <img width="200" src="https://image.pngaaa.com/390/1332390-middle.png" alt="Kryptonite Logo">
+  <br/>
+  <h1>Kryptonite</h1>
+</p>
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/pravinba9495/kryptonite.svg)](https://pkg.go.dev/github.com/pravinba9495/kryptonite) ![Go Report Card](https://goreportcard.com/badge/github.com/pravinba9495/kryptonite) ![Issues](https://img.shields.io/github/issues-raw/pravinba9495/kryptonite) ![License](https://img.shields.io/github/license/pravinba9495/kryptonite) ![Release](https://img.shields.io/github/v/release/pravinba9495/kryptonite?include_prereleases)
+
 
 Automated crypto swapping bot, written in Go. Supports swapping on Ethereum, BSC, Polygon, Optimisim and Arbitrum networks using 1inch AggregatorV4 router. Under active development.
 
+
 ## Table of Contents
 - [Introduction](#introduction)
-- [Installation](#installation)
+- [Setup](#setup)
+  - [Requirements](#requirements)
+  - [Parameters](#parameters)
   - [Usage](#usage)
 - [Documentation](#documentation)
 - [Development](#development)
@@ -14,9 +23,11 @@ Automated crypto swapping bot, written in Go. Supports swapping on Ethereum, BSC
 
 ## Introduction
 
+## Setup
 
-## Installation
+### Requirements
 
+### Parameters
 
 ### Usage
 ```shell
