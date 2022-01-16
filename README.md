@@ -58,7 +58,7 @@ The following command line parameters are supported.
 
 <tr>
 <td>--chainId</td>
-<td>Chain to use. Allowed options: 1 (Ethereum), 10 (Optimism), 56 (Binance Smart Chain), 137 (Polygon/Matic), 42161 (Arbitrum)")</td>
+<td>Chain to use. Allowed options: 1 (Ethereum), 10 (Optimism), 56 (Binance Smart Chain), 137 (Polygon/Matic), 42161 (Arbitrum)</td>
 <td>integer</td>
 <td>1</td>
 </tr>
@@ -86,7 +86,7 @@ The following command line parameters are supported.
 
 <tr>
 <td>--botToken</td>
-<td>Telegram Bot Token used to send and receive transaction confirmations</td>
+<td>Telegram bot token used to send and receive transaction confirmations</td>
 <td>string</td>
 <td></td>
 </tr>
