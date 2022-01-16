@@ -14,12 +14,16 @@ Automated crypto swapping bot, written in Go. Supports swapping on Ethereum, BSC
   - [Requirements](#requirements)
   - [Parameters](#parameters)
   - [Usage](#usage)
+- [Instructions](#instructions)
 - [Documentation](#documentation)
 - [Development](#development)
 - [Maintainers](#maintainers)
 - [License](#license)
 
 ## Introduction
+This project started as a hobby to figure out a way to keep an eye on the crypto market while juggling my day job. The Crypto market is highly volatile. Cryptocurrencies can fluctuate in price drastically within seconds you have your eyes off the screen. Unless you are a trader by profession, you cannot actively manage your portfolio, make any meaningful and profitable moves or prevent a loss. You can swap your tokens into stable coins to prevent losses. However, this requires you to pay constant attention to the market, which is not an easy task for everyone. What if there is a way to protect your crypto investment from major pullbacks like the one everyone witnessed in November 2021?
+
+With Kryptonite, you can now automatically set limit buy/sell and stop-loss orders, like a watchdog protecting your crypto assets from losses, even while you are sleeping. Kryptonite does technical analysis for you on the fly, every day, every minute. It uses historical as well as real-time data to calculate reasonable support and resistance levels and places its trades accordingly. It can react to a market crash more swiftly than any human could. Importantly, Kryptonite strives to reduce your anxiety levels in an uncertain and rigged market.
 
 ## Setup
 
@@ -147,6 +151,8 @@ docker run pravinba9495/kryptonite:latest kryptonite \
                 --profitPercent=<PROFIT_PERCENT> \
                 --stopLossPercent=<STOP_LOSS_PERCENT>
 ```
+## Instructions
+
 
 ## Documentation
 Kryptonite documentation is hosted at [Read the docs](https://pkg.go.dev/github.com/pravinba9495/kryptonite).
