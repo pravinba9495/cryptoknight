@@ -355,7 +355,7 @@ func (r *Router) GetSwapData(chainID uint64, params *SwapParamsDto) (*SwapRespon
 }
 
 // DoSwap prepares for a swap, waits for admin confirmation and proceeds for a swap
-func (r *Router) DoSwap(w *Wallet, fromTokenContractAddress string, fromTokenBalance *big.Int, toTokenContractAddress string) error {
+func (r *Router) DoSwap(w *Wallet, fromTokenContractAddress string, fromTokenBalance *big.Int, toTokenContractAddress string, mode string) error {
 
 	accessRequestApproved := false
 
@@ -375,18 +375,22 @@ func (r *Router) DoSwap(w *Wallet, fromTokenContractAddress string, fromTokenBal
 			break
 		} else {
 			for !accessRequestApproved {
-				bot.OutboundChannel <- "To proceed for a swap, the token contract must be allowed to access the required amount of tokens from your wallet.\n\nReply 'yes' to apprive this request\nReply 'no' to decline this request.\n\nThe approval request will expire automatically in 30 seconds."
-				bot.IsWaitingConfirmation = true
-				go func() {
-					time.Sleep(30 * time.Second)
-					if bot.IsWaitingConfirmation {
-						bot.ConfirmationChannel <- false
-						bot.IsWaitingConfirmation = false
-					}
-				}()
-
-				reply := <-bot.ConfirmationChannel
-				bot.IsWaitingConfirmation = false
+				var reply bool
+				if mode == "AUTO" {
+					reply = true
+				} else {
+					bot.OutboundChannel <- "To proceed for a swap, the token contract must be allowed to access the required amount of tokens from your wallet.\n\nReply 'yes' to apprive this request\nReply 'no' to decline this request.\n\nThe approval request will expire automatically in 30 seconds."
+					bot.IsWaitingConfirmation = true
+					go func() {
+						time.Sleep(30 * time.Second)
+						if bot.IsWaitingConfirmation {
+							bot.ConfirmationChannel <- false
+							bot.IsWaitingConfirmation = false
+						}
+					}()
+					reply = <-bot.ConfirmationChannel
+					bot.IsWaitingConfirmation = false
+				}
 				if reply {
 					accessRequestApproved = true
 					dto, err := r.GetApproveAllowanceData(fromTokenContractAddress, fromTokenBalance.String())
@@ -452,18 +456,22 @@ func (r *Router) DoSwap(w *Wallet, fromTokenContractAddress string, fromTokenBal
 	str := fmt.Sprintf("\n\nDate: %s\nOrder Type: %s\n\n%s\n\n", time.Now().Format(time.RFC822), "BUY", swapStr)
 
 	bot.OutboundChannel <- str
-	bot.OutboundChannel <- "Reply 'yes' to confirm\nReply 'no' to decline the swap.\n\nThe swap request will expire automatically in 30 seconds."
-	bot.IsWaitingConfirmation = true
-	go func() {
-		time.Sleep(30 * time.Second)
-		if bot.IsWaitingConfirmation {
-			bot.ConfirmationChannel <- false
-			bot.IsWaitingConfirmation = false
-		}
-	}()
-
-	reply := <-bot.ConfirmationChannel
-	bot.IsWaitingConfirmation = false
+	var reply bool
+	if mode == "AUTO" {
+		reply = true
+	} else {
+		bot.OutboundChannel <- "Reply 'yes' to confirm\nReply 'no' to decline the swap.\n\nThe swap request will expire automatically in 30 seconds."
+		bot.IsWaitingConfirmation = true
+		go func() {
+			time.Sleep(30 * time.Second)
+			if bot.IsWaitingConfirmation {
+				bot.ConfirmationChannel <- false
+				bot.IsWaitingConfirmation = false
+			}
+		}()
+		reply = <-bot.ConfirmationChannel
+		bot.IsWaitingConfirmation = false
+	}
 	if reply {
 		toAddress := common.HexToAddress(swapResDto.Tx.To)
 		gasPrice := new(big.Int)

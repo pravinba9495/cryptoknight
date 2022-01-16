@@ -23,10 +23,11 @@ import (
 func main() {
 
 	// Parse input arguments
-	var address, privateKey, stableToken, targetToken, botToken, password, redisAddress string
+	var address, privateKey, stableToken, targetToken, botToken, password, redisAddress, mode string
 	var chainID, days, profitPercent, stopLossPercent uint64
 	flag.StringVar(&address, "publicKey", "", "Your wallet public address")
 	flag.StringVar(&privateKey, "privateKey", "", "Your wallet private key")
+	flag.StringVar(&mode, "mode", "MANUAL", "Mode of operation. Allowed options: 'MANUAL' (requires you to authorize a swap via telgram bot), 'AUTO' (does not require any confirmation)")
 	flag.StringVar(&bot.ChatID, "chatId", "", "Your telegram chat id. You will receive this when you authorize yourself with the bot for the first time")
 	flag.StringVar(&stableToken, "stableToken", "USDC", "Stable token (ERC20) to use. Example: USDC, USDT, DAI")
 	flag.StringVar(&targetToken, "targetToken", "WETH", "Target ERC20 token to hold. Example: WETH, WMATIC, LINK.")
@@ -54,6 +55,12 @@ func main() {
 
 	if redisAddress == "" {
 		err := "redis address is not provided"
+		bot.OutboundChannel <- err
+		log.Fatalln(err)
+	}
+
+	if (mode != "MANUAL") && (mode != "AUTO") {
+		err := "unsupported mode"
 		bot.OutboundChannel <- err
 		log.Fatalln(err)
 	}
@@ -190,7 +197,7 @@ func main() {
 											// Print stats
 											log.Print(fmt.Sprintf("Verdict => BUY (Upside: +%.2f%s, Downside: %.2f%s)", upside, "%", downside, "%"))
 											log.Println("Waiting for transaction confirmation from admin/blockchain")
-											if err := router.DoSwap(wallet, stableTokenContractAddress, wallet.StableCoinBalance, targetTokenContractAddress); err != nil {
+											if err := router.DoSwap(wallet, stableTokenContractAddress, wallet.StableCoinBalance, targetTokenContractAddress, mode); err != nil {
 												if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
 													err = errors.New("Request expired/declined")
 													bot.OutboundChannel <- err.Error()
@@ -229,7 +236,7 @@ func main() {
 													// Print stats
 													log.Print(fmt.Sprintf("Verdict => SELL (%s: %.2f%s)", typ, value, "%"))
 													log.Println("Waiting for transaction confirmation from admin/blockchain")
-													if err := router.DoSwap(wallet, targetTokenContractAddress, wallet.TargetCoinBalance, stableTokenContractAddress); err != nil {
+													if err := router.DoSwap(wallet, targetTokenContractAddress, wallet.TargetCoinBalance, stableTokenContractAddress, mode); err != nil {
 														if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
 															err = errors.New("Request expired/declined")
 															bot.OutboundChannel <- err.Error()
