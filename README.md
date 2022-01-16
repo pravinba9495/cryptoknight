@@ -25,6 +25,8 @@ This project started as a hobby to figure out a way to keep an eye on the crypto
 
 With Kryptonite, you can now automatically set limit buy/sell and stop-loss orders, like a watchdog protecting your crypto assets from losses, even while you are sleeping. Kryptonite does technical analysis for you on the fly, every day, every minute. It uses historical as well as real-time data to calculate reasonable support and resistance levels and places its trades accordingly. It can react to a market crash more swiftly than any human could. Importantly, Kryptonite strives to reduce your anxiety levels in an uncertain and rigged market.
 
+Think of Kryptonite as an "Autopilot for Crypto Trading". Kryptonite does not execute trades on exchanges like Coinbase and Binance, simply because you cannot access your wallet's private key. Private keys are required by Kryptonite to execute an order on your behalf.
+
 ## Setup
 
 ### Requirements
