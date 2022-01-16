@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="200" src="https://image.pngaaa.com/390/1332390-middle.png" alt="Kryptonite Logo">
+  <img width="100" src="https://www.maxpixel.net/static/photo/1x/Growth-Green-Cartoon-Crystal-Green-Cartoon-307264.png" alt="Kryptonite Logo">
   <br/>
   <h1>Kryptonite</h1>
 </p>
