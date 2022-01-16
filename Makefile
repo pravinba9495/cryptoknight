@@ -1,9 +1,7 @@
 eth:
 	npm install
 	npm run pkg
-build:
-	npm install
-	npm run pkg
+build: eth
 	go build -o bin/kryptonite main.go
 docker:
 	npm install
