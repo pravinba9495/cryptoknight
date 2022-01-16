@@ -34,7 +34,7 @@ func main() {
 	flag.StringVar(&password, "password", "kryptonite", "Password to share with the bot to authorize yourself as the admin")
 	flag.StringVar(&redisAddress, "redisAddress", "", "Redis server host. Example: 192.168.1.100:6379")
 	flag.Uint64Var(&chainID, "chainId", 1, "Chain to use. Allowed options: 1 (Ethereum), 10 (Optimism), 56 (Binance Smart Chain), 137 (Polygon/Matic), 42161 (Arbitrum)")
-	flag.Uint64Var(&days, "days", 30, "No. of days to use to calculate moving average")
+	flag.Uint64Var(&days, "days", 30, "Period of interest")
 	flag.Uint64Var(&profitPercent, "profitPercent", 50, "Profit percent at which the bot will execute a sell order")
 	flag.Uint64Var(&stopLossPercent, "stopLossPercent", 25, "Loss percent at which the bot will execute a stop loss order")
 	flag.Parse()

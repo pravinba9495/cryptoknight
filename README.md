@@ -114,7 +114,7 @@ The following command line parameters are supported.
 
 <tr>
 <td>days</td>
-<td>No. of days to use to calculate moving average</td>
+<td>Period of interest</td>
 <td>integer</td>
 <td>30</td>
 </tr>
