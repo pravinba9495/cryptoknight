@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/pravinba9495/go-telegram"
+	"github.com/pravinba9495/kryptonite/variables"
 )
 
 // Run the telegram bot
@@ -55,6 +56,10 @@ func Run(botToken string, password string) {
 						if IsWaitingConfirmation {
 							ConfirmationChannel <- false
 						}
+					} else if strings.ToLower(lastMsg) == "status" && lastChatId == ChatID {
+						OutboundChannel <- fmt.Sprintf("Current Status: %s\n%s", variables.CurrentStatus, variables.Verdict)
+					} else if strings.ToLower(lastMsg) == "/start" && lastChatId == ChatID {
+						OutboundChannel <- "🎉 You are now authorized to receive communication through the bot."
 					} else {
 						OutboundChannel <- "Command not understood"
 					}
