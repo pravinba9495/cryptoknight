@@ -152,7 +152,7 @@ The following command line parameters are supported.
 
 ### Usage
 ```shell
-docker run -d pravinba9495/kryptonite:latest kryptonite \
+docker run -d --name kryptonite pravinba9495/kryptonite:latest kryptonite \
                 --privateKey=<PRIVATE_KEY> \
                 --publicKey=<PUBLIC_ADDRESS> \
                 --chainId=<CHAIN_ID> \
