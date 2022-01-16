@@ -25,7 +25,7 @@ func main() {
 	// Parse input arguments
 	var address, privateKey, stableToken, targetToken, botToken, password, redisAddress string
 	var chainID, days, profitPercent, stopLossPercent uint64
-	flag.StringVar(&address, "publicKey", "0x0000000000000000000000000000000000000000", "Your wallet public address")
+	flag.StringVar(&address, "publicKey", "", "Your wallet public address")
 	flag.StringVar(&privateKey, "privateKey", "", "Your wallet private key")
 	flag.StringVar(&bot.ChatID, "chatId", "", "Your telegram chat id. You will receive this when you authorize yourself with the bot for the first time.")
 	flag.StringVar(&stableToken, "stableToken", "USDC", "Stable token (ERC20) to use. Example: USDC, USDT, DAI")
