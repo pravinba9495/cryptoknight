@@ -15,13 +15,14 @@ Automated crypto swapping bot, written in Go. Supports swapping on Ethereum, BSC
   - [Parameters](#parameters)
   - [Usage](#usage)
 - [Instructions](#instructions)
+- [Benchmarks](#benchmarks)
 - [Documentation](#documentation)
 - [Development](#development)
 - [Maintainers](#maintainers)
 - [License](#license)
 
 ## Introduction
-This project started as a hobby to figure out a way to keep an eye on the crypto market while juggling my day job. The Crypto market is highly volatile. Cryptocurrencies can fluctuate in price drastically within seconds you have your eyes off the screen. Unless you are a trader by profession, you cannot actively manage your portfolio, or make any meaningful and profitable moves or prevent a loss. For people with crypto assets in a self-owned wallet (not on Coinbase or Binance), you can swap your tokens for stable coins to prevent losses. This still requires you to pay constant attention to the market, which is not an easy task for everyone. What if there was a way to protect your crypto investment from major pullbacks like the one everyone witnessed in November 2021?
+This project started as a hobby to figure out a way to keep an eye on the crypto market while juggling my day job. The Crypto market is highly volatile. Cryptocurrencies can fluctuate in price drastically within seconds you have your eyes off the screen. Unless you are a trader by profession, you cannot actively manage your portfolio, or make any meaningful and profitable moves or prevent a loss. For people with crypto assets in a self-owned wallet (not on exchanges like Coinbase or Binance), you can swap your tokens for stable coins to prevent losses. This still requires you to pay constant attention to the market, which is not an easy task for everyone. What if there was a way to protect your crypto investment from major pullbacks like the one everyone witnessed in November 2021?
 
 With Kryptonite, you can now automatically set limit buy/sell and stop-loss orders, like a watchdog protecting your crypto assets from losses, even while you are sleeping. Kryptonite does technical analysis for you on the fly, every day, every minute. It uses historical as well as real-time data to calculate reasonable support and resistance levels and places its trades accordingly. It can react to a market crash more swiftly than any human could. Importantly, Kryptonite strives to reduce your anxiety levels in an uncertain and rigged market.
 
@@ -155,8 +156,10 @@ docker run pravinba9495/kryptonite:latest kryptonite \
 ```
 ## Instructions
 
+## Benchmarks
+
 ## Disclaimer
-By using Kryptonite, you understand and agree that there might be bugs in the code that could potentially lead to financial loss. You and only you are responsible for the use of this tool and any financial loss that it may cause. Nobody else shall be held accountable in this regard. Stop using this tool if you do not agree to this. Do conduct your own due diligence and consult your financial advisor before making any investment decisions
+By using Kryptonite, you understand and agree that there might be bugs in the code that could potentially lead to financial loss. You and only you are responsible for the use of this tool and any financial loss that it may cause. Nobody else shall be held accountable in this regard. Stop using this tool if you do not agree to this. Do conduct your own due diligence and consult your financial advisor before making any investment decisions.
 
 ## Documentation
 Kryptonite documentation is hosted at [Read the docs](https://pkg.go.dev/github.com/pravinba9495/kryptonite).
