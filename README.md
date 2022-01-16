@@ -31,7 +31,7 @@ The following command line parameters are supported.
 
 <div align="center">
 
-<table border="1">
+<table>
 <thead>
 <tr>
 <th>Parameter</th>
