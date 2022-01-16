@@ -156,7 +156,7 @@ docker run pravinba9495/kryptonite:latest kryptonite \
 ## Instructions
 
 ## Disclaimer
-By using Kryptonite, you understand that there might be bugs in the code that could potentially lead to financial loss. You and only you are responsible for the use of this tool and any financial loss that it may cause. Nobody else shall be held accountable in this regard. Stop using this tool if you do not agree to this. Do conduct your own due diligence and consult your financial advisor before making any investment decisions
+By using Kryptonite, you understand and agree that there might be bugs in the code that could potentially lead to financial loss. You and only you are responsible for the use of this tool and any financial loss that it may cause. Nobody else shall be held accountable in this regard. Stop using this tool if you do not agree to this. Do conduct your own due diligence and consult your financial advisor before making any investment decisions
 
 ## Documentation
 Kryptonite documentation is hosted at [Read the docs](https://pkg.go.dev/github.com/pravinba9495/kryptonite).
