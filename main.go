@@ -65,6 +65,8 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	variables.BotMode = mode
+
 	// Connect to redis
 	rdb := redis.NewClient(&redis.Options{
 		Addr: redisAddress,
@@ -203,7 +205,7 @@ func main() {
 										if bool {
 											// Print stats
 											str = fmt.Sprintf("Verdict => BUY (Upside: +%.2f%s, Downside: %.2f%s)", upside, "%", downside, "%")
-											if err := router.DoSwap(wallet, stableTokenContractAddress, wallet.StableCoinBalance, targetTokenContractAddress, mode); err != nil {
+											if err := router.DoSwap(wallet, stableTokenContractAddress, wallet.StableCoinBalance, targetTokenContractAddress, variables.BotMode); err != nil {
 												if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
 													err = errors.New("Request expired/declined")
 													bot.OutboundChannel <- err.Error()
@@ -242,7 +244,7 @@ func main() {
 												if isASell {
 													// Print stats
 													str = fmt.Sprintf("Verdict => SELL (%s: %.2f%s)", typ, value, "%")
-													if err := router.DoSwap(wallet, targetTokenContractAddress, wallet.TargetCoinBalance, stableTokenContractAddress, mode); err != nil {
+													if err := router.DoSwap(wallet, targetTokenContractAddress, wallet.TargetCoinBalance, stableTokenContractAddress, variables.BotMode); err != nil {
 														if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
 															err = errors.New("Request expired/declined")
 															bot.OutboundChannel <- err.Error()

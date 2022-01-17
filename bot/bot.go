@@ -60,6 +60,14 @@ func Run(botToken string, password string) {
 						OutboundChannel <- fmt.Sprintf("Current Status: %s\n%s", variables.CurrentStatus, variables.Verdict)
 					} else if strings.ToLower(lastMsg) == "/start" && lastChatId == ChatID {
 						OutboundChannel <- "🎉 You are now authorized to receive communication through the bot."
+					} else if strings.ToLower(lastMsg) == "manual" && lastChatId == ChatID {
+						variables.BotMode = "MANUAL"
+						OutboundChannel <- "Kryptonite is now in manual mode."
+					} else if strings.ToLower(lastMsg) == "auto" && lastChatId == ChatID {
+						variables.BotMode = "AUTO"
+						OutboundChannel <- "Kryptonite is now on autopilot."
+					} else if strings.ToLower(lastMsg) == "mode" && lastChatId == ChatID {
+						OutboundChannel <- fmt.Sprintf("Kryptonite mode: %s", variables.BotMode)
 					} else {
 						OutboundChannel <- "Command not understood"
 					}
