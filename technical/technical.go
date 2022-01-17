@@ -20,7 +20,7 @@ func IsASell(previousTokenPrice float64, currentTokenPrice float64, movingAverag
 
 	if currentProfitOrLossPercent > 0 {
 		// Profit Taking
-		if float64(profitPercent) < currentProfitOrLossPercent && math.Abs(upside) < 2 {
+		if float64(profitPercent) < currentProfitOrLossPercent && math.Abs(upside) < 1 {
 			return true, "Profit", currentProfitOrLossPercent
 		} else {
 			// HODL
@@ -48,6 +48,7 @@ func IsABuy(currentTokenPrice float64, movingAverageShort float64, movingAverage
 	cond5 := movingAverageShort < recentResistance
 	cond6 := math.Abs(upside) > math.Abs(downside)
 	cond7 := float64(stopLossPercent) > math.Abs(downside)
+	cond8 := math.Abs(upside) > 10
 
 	return cond1 &&
 		cond2 &&
@@ -55,7 +56,8 @@ func IsABuy(currentTokenPrice float64, movingAverageShort float64, movingAverage
 		cond4 &&
 		cond5 &&
 		cond6 &&
-		cond7, upside, downside
+		cond7 &&
+		cond8, upside, downside
 }
 
 func CalculateResistanceLevels(points []float64, candlesBefore uint64, candlesAfter uint64) []float64 {
