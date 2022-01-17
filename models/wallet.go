@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -152,10 +153,21 @@ func (w *Wallet) SendTransaction(toAddress *common.Address, tx *types.LegacyTx) 
 	if err != nil {
 		return nil, err
 	}
+	if tx.Gas == 0 {
+		g, err := client.EstimateGas(context.TODO(), ethereum.CallMsg{
+			To:    toAddress,
+			Value: big.NewInt(0),
+			Data:  tx.Data,
+		})
+		if err != nil {
+			return nil, err
+		}
+		tx.Gas = g
+	}
 	t := &types.LegacyTx{
 		Nonce:    nonce,
 		GasPrice: tx.GasPrice,
-		Gas:      tx.Gas,
+		Gas:      uint64(1.25 * float64(tx.Gas)),
 		To:       tx.To,
 		Value:    big.NewInt(0),
 		Data:     tx.Data,

@@ -210,7 +210,7 @@ func main() {
 													Die(err)
 												}
 											} else {
-												_, err := rdb.Set(context.TODO(), strings.ToLower(targetToken)+":previousTokenPrice", currentTokenPrice, 0).Result()
+												_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice", currentTokenPrice, 0).Result()
 												if err != nil {
 													Die(err)
 												}
@@ -222,7 +222,7 @@ func main() {
 										str = fmt.Sprintf("%s\n\nCurrent Price: $%f\nAverage Price: $%f\nRecent Support: $%f\nRecent Resistance: $%f\nUpside: +%f%s\nDownside: %f%s\n", str, currentTokenPrice, movingAverage, recentSupport, recentResistance, upside, "%", downside, "%")
 									} else if currentStatus == "WAITING_TO_SELL" && wallet.TargetCoinBalance.Cmp(big.NewInt(0)) == 1 {
 										// Get the price at which the token was last bought
-										v, err := rdb.Get(context.TODO(), strings.ToLower(targetToken)+":previousTokenPrice").Result()
+										v, err := rdb.HGet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice").Result()
 										if err != nil {
 											bot.OutboundChannel <- err.Error()
 											log.Println(err)
@@ -249,7 +249,7 @@ func main() {
 															Die(err)
 														}
 													} else {
-														_, err := rdb.Set(context.TODO(), strings.ToLower(targetToken)+":previousTokenPrice", 0, 0).Result()
+														_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice", 0, 0).Result()
 														if err != nil {
 															Die(err)
 														}

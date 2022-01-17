@@ -98,7 +98,6 @@ type SwapParamsDto struct {
 	Amount           string `json:"amount,omitempty" url:"amount,omitempty"`
 	FromAddress      string `json:"fromAddress,omitempty" url:"fromAddress,omitempty"`
 	Slippage         string `json:"slippage,omitempty" url:"slippage,omitempty"`
-	GasLimit         string `json:"gasLimit,omitempty" url:"gasLimit"`
 	DisableEstimate  bool   `json:"disableEstimate,omitempty" url:"disableEstimate"`
 }
 
@@ -379,7 +378,7 @@ func (r *Router) DoSwap(w *Wallet, fromTokenContractAddress string, fromTokenBal
 				if mode == "AUTO" {
 					reply = true
 				} else {
-					bot.OutboundChannel <- "To proceed for a swap, the token contract must be allowed to access the required amount of tokens from your wallet.\n\nReply 'yes' to apprive this request\nReply 'no' to decline this request.\n\nThe approval request will expire automatically in 30 seconds."
+					bot.OutboundChannel <- "To proceed for a swap, the router must be allowed to access the required amount of tokens from your wallet.\n\nReply 'yes' to apprive this request\nReply 'no' to decline this request.\n\nThe approval request will expire automatically in 30 seconds."
 					bot.IsWaitingConfirmation = true
 					go func() {
 						time.Sleep(30 * time.Second)
@@ -406,6 +405,7 @@ func (r *Router) DoSwap(w *Wallet, fromTokenContractAddress string, fromTokenBal
 					}
 					_, err = w.SendTransaction(&toAddress, &types.LegacyTx{
 						GasPrice: gP,
+						Gas:      0,
 						To:       &toAddress,
 						Data:     []byte(dto.Data),
 					})
@@ -432,12 +432,11 @@ func (r *Router) DoSwap(w *Wallet, fromTokenContractAddress string, fromTokenBal
 	}
 
 	swapParams := &SwapParamsDto{
-		FromTokenAddress: fromTokenContractAddress,
-		ToTokenAddress:   toTokenContractAddress,
-		Amount:           fromTokenBalance.String(),
+		FromTokenAddress: quoteResDto.FromToken.Address.Hex(),
+		ToTokenAddress:   quoteResDto.ToToken.Address.Hex(),
+		Amount:           quoteResDto.FromTokenAmount,
 		FromAddress:      w.Address.Hex(),
 		Slippage:         "1",
-		GasLimit:         fmt.Sprint(quoteResDto.EstimatedGas),
 		DisableEstimate:  false,
 	}
 	swapResDto, err := r.GetSwapData(r.ChainID, swapParams)
