@@ -28,7 +28,7 @@ func IsASell(previousTokenPrice float64, currentTokenPrice float64, movingAverag
 		}
 	} else {
 		// Stop Loss
-		if float64(stopLoss) < currentProfitOrLossPercent {
+		if float64(stopLoss) < math.Abs(currentProfitOrLossPercent) {
 			return true, "Stop Loss", currentProfitOrLossPercent
 		} else {
 			// HODL
