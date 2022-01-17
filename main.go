@@ -25,7 +25,7 @@ func main() {
 
 	// Parse input arguments
 	var address, privateKey, stableToken, targetToken, botToken, password, redisAddress, mode string
-	var chainID, days, profitPercent, stopLossPercent uint64
+	var chainID, profitPercent, stopLossPercent uint64
 	flag.StringVar(&address, "publicKey", "", "Your wallet public address")
 	flag.StringVar(&privateKey, "privateKey", "", "Your wallet private key")
 	flag.StringVar(&mode, "mode", "MANUAL", "Mode of operation. Allowed options: 'MANUAL' (requires you to authorize a swap via telgram bot), 'AUTO' (does not require any confirmation)")
@@ -36,7 +36,6 @@ func main() {
 	flag.StringVar(&password, "password", "kryptonite", "Password to share with the bot to authorize yourself as the admin")
 	flag.StringVar(&redisAddress, "redisAddress", "", "Redis server host. Example: 192.168.1.100:6379")
 	flag.Uint64Var(&chainID, "chainId", 1, "Chain to use. Allowed options: 1 (Ethereum), 10 (Optimism), 56 (Binance Smart Chain), 137 (Polygon/Matic), 42161 (Arbitrum)")
-	flag.Uint64Var(&days, "days", 30, "Period of interest")
 	flag.Uint64Var(&profitPercent, "profitPercent", 50, "Profit percent at which the bot will execute a sell order")
 	flag.Uint64Var(&stopLossPercent, "stopLossPercent", 25, "Loss percent at which the bot will execute a stop loss order")
 	flag.Parse()
@@ -178,11 +177,14 @@ func main() {
 							} else {
 
 								// Analyze the period of interest
-								prices := oneYearPoints[(len(oneYearPoints) - int(days)):]
-								if len(prices) > 0 {
+								pricesShort := oneYearPoints[(len(oneYearPoints) - int(10)):]
+								pricesLong := oneYearPoints[(len(oneYearPoints) - int(30)):]
 
-									// Calculate simple moving average
-									movingAverage := technical.GetMovingAverage(prices)
+								if len(pricesShort) > 0 && len(pricesLong) > 0 {
+
+									// Calculate simple moving averages
+									movingAverageShort := technical.GetMovingAverage(pricesShort)
+									movingAverageLong := technical.GetMovingAverage(pricesLong)
 									// Get nearest support and resistance levels
 									recentSupport, recentResistance := technical.GetRecentSupportAndResistance(currentTokenPrice, supports, resistances)
 									log.Print(fmt.Sprintf("Current Status: %s", currentStatus))
@@ -195,7 +197,7 @@ func main() {
 									if currentStatus == "WAITING_TO_BUY" && wallet.StableCoinBalance.Cmp(big.NewInt(0)) > 0 {
 
 										// Check if currentTokenPrice is a BUY
-										bool, upside, downside := technical.IsABuy(currentTokenPrice, movingAverage, recentSupport, recentResistance, int64(profitPercent), int64(stopLossPercent))
+										bool, upside, downside := technical.IsABuy(currentTokenPrice, movingAverageShort, movingAverageLong, recentSupport, recentResistance, int64(profitPercent), int64(stopLossPercent))
 
 										// If currentTokenPrice is a BUY
 										if bool {
@@ -219,7 +221,7 @@ func main() {
 											// currentTokenPrice is not a BUY, HODL
 											str = "Verdict => HODL"
 										}
-										str = fmt.Sprintf("%s\n\nCurrent Price: $%f\nAverage Price: $%f\nRecent Support: $%f\nRecent Resistance: $%f\nUpside: +%f%s\nDownside: %f%s\n", str, currentTokenPrice, movingAverage, recentSupport, recentResistance, upside, "%", downside, "%")
+										str = fmt.Sprintf("%s\n\nCurrent Price: $%f\nAverage Price (10 days): $%f\nRecent Support: $%f\nRecent Resistance: $%f\nUpside: +%f%s\nDownside: %f%s\n", str, currentTokenPrice, movingAverageShort, recentSupport, recentResistance, upside, "%", downside, "%")
 									} else if currentStatus == "WAITING_TO_SELL" && wallet.TargetCoinBalance.Cmp(big.NewInt(0)) == 1 {
 										// Get the price at which the token was last bought
 										v, err := rdb.HGet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice").Result()
@@ -234,7 +236,7 @@ func main() {
 												log.Println(err)
 											} else {
 												// Check if currentTokenPrice is a SELL based on technical analysis, previousTokenPrice, profitPercent and stopLossPercent
-												isASell, typ, value := technical.IsASell(previousTokenPrice, currentTokenPrice, movingAverage, recentSupport, recentResistance, int64(profitPercent), int64(stopLossPercent))
+												isASell, typ, value := technical.IsASell(previousTokenPrice, currentTokenPrice, movingAverageShort, movingAverageLong, recentSupport, recentResistance, int64(profitPercent), int64(stopLossPercent))
 
 												// If currentTokenPrice is a SELL
 												if isASell {
@@ -258,7 +260,7 @@ func main() {
 													// currentTokenPrice is not a SELL, HODL
 													str = "Verdict => HODL"
 												}
-												str = fmt.Sprintf("%s\n\nCurrent Price: $%f\nAverage Price: $%f\nRecent Support: $%f\nRecent Resistance: $%f\n%s: %f%s\n", str, currentTokenPrice, movingAverage, recentSupport, recentResistance, typ, value, "%")
+												str = fmt.Sprintf("%s\n\nCurrent Price: $%f\nAverage Price (10 days): $%f\nRecent Support: $%f\nRecent Resistance: $%f\n%s: %f%s\n", str, currentTokenPrice, movingAverageShort, recentSupport, recentResistance, typ, value, "%")
 											}
 										}
 									}

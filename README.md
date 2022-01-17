@@ -125,13 +125,6 @@ The following command line parameters are supported.
 </tr>
 
 <tr>
-<td>days</td>
-<td>Period of interest</td>
-<td>integer</td>
-<td>30</td>
-</tr>
-
-<tr>
 <td>profitPercent</td>
 <td>Profit percent at which the bot will execute a sell order</td>
 <td>integer</td>
@@ -169,7 +162,6 @@ docker run -d --name kryptonite pravinba9495/kryptonite:latest kryptonite \
                 --botToken=<BOT_TOKEN> \
                 --chatId=<CHAT_ID> \
                 --password=<PASSWORD> \
-                --days=<DAYS> \
                 --profitPercent=<PROFIT_PERCENT> \
                 --stopLossPercent=<STOP_LOSS_PERCENT> \
                 --mode=<MODE_OF_OPERATION>

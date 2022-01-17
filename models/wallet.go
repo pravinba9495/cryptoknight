@@ -155,9 +155,7 @@ func (w *Wallet) SendTransaction(toAddress *common.Address, tx *types.LegacyTx) 
 	}
 	if tx.Gas == 0 {
 		g, err := client.EstimateGas(context.TODO(), ethereum.CallMsg{
-			To:    toAddress,
-			Value: big.NewInt(0),
-			Data:  tx.Data,
+			Data: tx.Data,
 		})
 		if err != nil {
 			return nil, err

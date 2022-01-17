@@ -14,13 +14,13 @@ func GetMovingAverage(points []float64) float64 {
 	return movingAverage
 }
 
-func IsASell(previousTokenPrice float64, currentTokenPrice float64, movingAverage float64, recentSupport float64, recentResistance float64, profitPercent int64, stopLoss int64) (bool, string, float64) {
+func IsASell(previousTokenPrice float64, currentTokenPrice float64, movingAverageShort float64, movingAverageLong float64, recentSupport float64, recentResistance float64, profitPercent int64, stopLoss int64) (bool, string, float64) {
 	upside := ((recentResistance - currentTokenPrice) * 100) / currentTokenPrice
 	currentProfitOrLossPercent := ((currentTokenPrice - previousTokenPrice) * 100) / previousTokenPrice
 
 	if currentProfitOrLossPercent > 0 {
 		// Profit Taking
-		if float64(profitPercent) < currentProfitOrLossPercent && math.Abs(upside) < 2 {
+		if float64(profitPercent) < currentProfitOrLossPercent && math.Abs(upside) < 1 {
 			return true, "Profit", currentProfitOrLossPercent
 		} else {
 			// HODL
@@ -28,7 +28,7 @@ func IsASell(previousTokenPrice float64, currentTokenPrice float64, movingAverag
 		}
 	} else {
 		// Stop Loss
-		if float64(stopLoss) < currentProfitOrLossPercent {
+		if float64(stopLoss) < math.Abs(currentProfitOrLossPercent) {
 			return true, "Stop Loss", currentProfitOrLossPercent
 		} else {
 			// HODL
@@ -37,17 +37,18 @@ func IsASell(previousTokenPrice float64, currentTokenPrice float64, movingAverag
 	}
 }
 
-func IsABuy(currentTokenPrice float64, movingAverage float64, recentSupport float64, recentResistance float64, profitPercent int64, stopLossPercent int64) (bool, float64, float64) {
+func IsABuy(currentTokenPrice float64, movingAverageShort float64, movingAverageLong float64, recentSupport float64, recentResistance float64, profitPercent int64, stopLossPercent int64) (bool, float64, float64) {
 	upside := ((recentResistance - currentTokenPrice) * 100) / currentTokenPrice
 	downside := ((recentSupport - currentTokenPrice) * 100) / currentTokenPrice
 
 	cond1 := currentTokenPrice > recentSupport
 	cond2 := currentTokenPrice < recentResistance
-	cond3 := currentTokenPrice < (recentSupport + (0.02 * recentSupport))
-	cond4 := movingAverage > recentSupport
-	cond5 := movingAverage < recentResistance
+	cond3 := currentTokenPrice < (movingAverageLong + (0.02 * movingAverageLong))
+	cond4 := movingAverageShort > recentSupport
+	cond5 := movingAverageShort < recentResistance
 	cond6 := math.Abs(upside) > math.Abs(downside)
 	cond7 := float64(stopLossPercent) > math.Abs(downside)
+	cond8 := math.Abs(upside) > 10
 
 	return cond1 &&
 		cond2 &&
@@ -55,7 +56,8 @@ func IsABuy(currentTokenPrice float64, movingAverage float64, recentSupport floa
 		cond4 &&
 		cond5 &&
 		cond6 &&
-		cond7, upside, downside
+		cond7 &&
+		cond8, upside, downside
 }
 
 func CalculateResistanceLevels(points []float64, candlesBefore uint64, candlesAfter uint64) []float64 {
