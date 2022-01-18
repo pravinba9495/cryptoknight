@@ -99,7 +99,7 @@ The following command line parameters are supported.
 
 <tr>
 <td>slippagePercent</td>
-<td>Slipage tolerance during swap. Example: 1, 2, ..50</td>
+<td>Slippage tolerance during swap. Example: 1, 2, ..50</td>
 <td>integer</td>
 <td>1</td>
 </tr>
