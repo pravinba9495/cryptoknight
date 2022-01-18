@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 // GetCoinsList retrieves the list of coins from CoinGecko
@@ -61,4 +62,24 @@ func GetCoinPrice(coinID string) (float64, error) {
 	} else {
 		return 0, errors.New(resp.Status + ":" + req.URL.String() + ":" + string(body))
 	}
+}
+
+// Get CoinID from symbol
+func GetCoinID(symbol string) (string, error) {
+	coins, err := GetCoinsList()
+	if err != nil {
+		return "", err
+	}
+	targetCoinID := ""
+	for _, coin := range coins {
+		if coin.Symbol == strings.ToLower(symbol) {
+			targetCoinID = coin.ID
+			break
+		}
+	}
+	if targetCoinID == "" {
+		err := "coin could not be found"
+		return "", (errors.New(err))
+	}
+	return targetCoinID, nil
 }
