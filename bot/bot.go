@@ -16,9 +16,9 @@ func Run(botToken string, password string) {
 
 		go func() {
 			for msg := range OutboundChannel {
-				if msg != "" && ChatID != "" {
+				if msg != "" && variables.ChatID != "" {
 					log.Println(msg)
-					_, err := telegram.SendMessage(botToken, ChatID, msg)
+					_, err := telegram.SendMessage(botToken, variables.ChatID, msg)
 					if err != nil {
 						log.Println(err)
 					}
@@ -46,29 +46,29 @@ func Run(botToken string, password string) {
 
 				if lastMsg != "" {
 					if lastMsg == password {
-						ChatID = lastChatId
+						variables.ChatID = lastChatId
 						OutboundChannel <- "🎉 You are now authorized to receive communication through the bot."
-						OutboundChannel <- "Your chatId: " + ChatID + ".\n\nRestart the docker container by adding --chatId=" + ChatID + " command line argument to automatically authorize yourself whenever the bot runs."
-					} else if strings.ToLower(lastMsg) == "yes" && lastChatId == ChatID {
+						OutboundChannel <- "Your chatId: " + variables.ChatID + ".\n\nRestart the docker container by adding --chatId=" + variables.ChatID + " command line argument to automatically authorize yourself whenever the bot runs."
+					} else if strings.ToLower(lastMsg) == "yes" && lastChatId == variables.ChatID {
 						if IsWaitingConfirmation {
 							ConfirmationChannel <- true
 						}
-					} else if strings.ToLower(lastMsg) == "no" && lastChatId == ChatID {
+					} else if strings.ToLower(lastMsg) == "no" && lastChatId == variables.ChatID {
 						if IsWaitingConfirmation {
 							ConfirmationChannel <- false
 						}
-					} else if strings.ToLower(lastMsg) == "status" && lastChatId == ChatID {
+					} else if strings.ToLower(lastMsg) == "status" && lastChatId == variables.ChatID {
 						OutboundChannel <- fmt.Sprintf("Current Status: %s\n%s", variables.CurrentStatus, variables.Verdict)
-					} else if strings.ToLower(lastMsg) == "/start" && lastChatId == ChatID {
+					} else if strings.ToLower(lastMsg) == "/start" && lastChatId == variables.ChatID {
 						OutboundChannel <- "🎉 You are now authorized to receive communication through the bot."
-					} else if strings.ToLower(lastMsg) == "manual" && lastChatId == ChatID {
-						variables.BotMode = "MANUAL"
+					} else if strings.ToLower(lastMsg) == "manual" && lastChatId == variables.ChatID {
+						variables.Mode = "MANUAL"
 						OutboundChannel <- "Kryptonite is now in manual mode."
-					} else if strings.ToLower(lastMsg) == "auto" && lastChatId == ChatID {
-						variables.BotMode = "AUTO"
+					} else if strings.ToLower(lastMsg) == "auto" && lastChatId == variables.ChatID {
+						variables.Mode = "AUTO"
 						OutboundChannel <- "Kryptonite is now on autopilot."
-					} else if strings.ToLower(lastMsg) == "mode" && lastChatId == ChatID {
-						OutboundChannel <- fmt.Sprintf("Kryptonite mode: %s", variables.BotMode)
+					} else if strings.ToLower(lastMsg) == "mode" && lastChatId == variables.ChatID {
+						OutboundChannel <- fmt.Sprintf("Kryptonite mode: %s", variables.Mode)
 					} else {
 						OutboundChannel <- "Command not understood"
 					}

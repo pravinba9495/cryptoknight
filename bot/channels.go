@@ -1,9 +1,6 @@
 package bot
 
 var (
-	// ChatID of the admin on telegram
-	ChatID string
-
 	// Last confirmation from the admin
 	IsWaitingConfirmation bool = false
 
