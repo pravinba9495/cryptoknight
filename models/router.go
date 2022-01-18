@@ -15,6 +15,7 @@ import (
 	"github.com/google/go-querystring/query"
 	"github.com/pravinba9495/kryptonite/bot"
 	"github.com/pravinba9495/kryptonite/constants"
+	"github.com/pravinba9495/kryptonite/variables"
 )
 
 // Router represents the model for the swap router
@@ -436,7 +437,7 @@ func (r *Router) DoSwap(w *Wallet, fromTokenContractAddress string, fromTokenBal
 		ToTokenAddress:   quoteResDto.ToToken.Address.Hex(),
 		Amount:           quoteResDto.FromTokenAmount,
 		FromAddress:      w.Address.Hex(),
-		Slippage:         "1",
+		Slippage:         fmt.Sprint(variables.Slippage),
 		DisableEstimate:  false,
 	}
 	swapResDto, err := r.GetSwapData(r.ChainID, swapParams)
