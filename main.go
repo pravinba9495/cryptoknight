@@ -65,6 +65,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	// Set bot mode
 	variables.BotMode = mode
 
 	// Connect to redis
@@ -158,119 +159,140 @@ func main() {
 						bot.OutboundChannel <- err.Error()
 						log.Println(err)
 					} else {
+						log.Print(fmt.Sprintf("Current Status: %s", currentStatus))
 
-						// Get market history of the token since the last 1 year
-						data, err := coingecko.GetMarketChartByCoin(targetCoinID, 365)
-						if err != nil {
-							bot.OutboundChannel <- err.Error()
-							log.Println(err)
-						} else {
+						variables.CurrentStatus = currentStatus
+						variables.Verdict = "Verdict => Nothing to do"
+						str := ""
 
-							oneYearPoints := make([]float64, 0)
-							for _, point := range data.Prices {
-								oneYearPoints = append(oneYearPoints, point[1])
-							}
-
-							// Calculate pivot points
-							supports, resistances, err := technical.GetSupportsAndResistances(oneYearPoints)
-							if err != nil {
+						// Check if current status is WAITING_TO_BUY/WAITING_TO_SELL/UNKNOWN
+						if currentStatus == "WAITING_TO_BUY" && wallet.StableCoinBalance.Cmp(big.NewInt(0)) > 0 {
+							v, err := rdb.HGet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "BuyLimit").Result()
+							if err == redis.Nil {
+								e := "No Buy limit is set. Please set a buy limit in the web interface or through the bot."
+								bot.OutboundChannel <- e
+								log.Println(e)
+							} else if err != nil {
 								bot.OutboundChannel <- err.Error()
 								log.Println(err)
 							} else {
-
-								// Analyze the period of interest
-								pricesShort := oneYearPoints[(len(oneYearPoints) - int(10)):]
-								pricesLong := oneYearPoints[(len(oneYearPoints) - int(30)):]
-
-								if len(pricesShort) > 0 && len(pricesLong) > 0 {
-
-									// Calculate simple moving averages
-									movingAverageShort := technical.GetMovingAverage(pricesShort)
-									movingAverageLong := technical.GetMovingAverage(pricesLong)
-									// Get nearest support and resistance levels
-									recentSupport, recentResistance := technical.GetRecentSupportAndResistance(currentTokenPrice, supports, resistances)
-									log.Print(fmt.Sprintf("Current Status: %s", currentStatus))
-
-									variables.CurrentStatus = currentStatus
-									variables.Verdict = "Verdict => Nothing to do"
-									str := ""
-
-									// Check if current status is WAITING_TO_BUY/WAITING_TO_SELL/UNKNOWN
-									if currentStatus == "WAITING_TO_BUY" && wallet.StableCoinBalance.Cmp(big.NewInt(0)) > 0 {
-
-										// Check if currentTokenPrice is a BUY
-										bool, upside, downside := technical.IsABuy(currentTokenPrice, movingAverageShort, movingAverageLong, recentSupport, recentResistance, int64(profitPercent), int64(stopLossPercent))
-
-										// If currentTokenPrice is a BUY
-										if bool {
-											// Print stats
-											str = fmt.Sprintf("Verdict => BUY (Upside: +%.2f%s, Downside: %.2f%s)", upside, "%", downside, "%")
-											if err := router.DoSwap(wallet, stableTokenContractAddress, wallet.StableCoinBalance, targetTokenContractAddress, variables.BotMode); err != nil {
-												if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
-													err = errors.New("Request expired/declined")
-													bot.OutboundChannel <- err.Error()
-													log.Println(err)
-												} else {
-													Die(err)
-												}
+								// Convert price from string to float64
+								buyLimit, err := strconv.ParseFloat(v, 64)
+								if err != nil {
+									bot.OutboundChannel <- err.Error()
+									log.Println(err)
+								} else {
+									// If currentTokenPrice is a BUY
+									if technical.IsABuy(currentTokenPrice, buyLimit) {
+										// Print stats
+										str = fmt.Sprintf("Verdict => BUY\n\nCurrent Price: $%f\nBuy Limit: $%f\n\nCurrent Price has reached Buy Limit Price\n", currentTokenPrice, buyLimit)
+										if err := router.DoSwap(wallet, stableTokenContractAddress, wallet.StableCoinBalance, targetTokenContractAddress, variables.BotMode); err != nil {
+											if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
+												err = errors.New("Request expired/declined")
+												bot.OutboundChannel <- err.Error()
+												log.Println(err)
 											} else {
-												_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice", currentTokenPrice, 0).Result()
-												if err != nil {
-													Die(err)
-												}
+												Die(err)
 											}
 										} else {
-											// currentTokenPrice is not a BUY, HODL
-											str = "Verdict => HODL"
+											_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice", currentTokenPrice, 0).Result()
+											if err != nil {
+												Die(err)
+											} else {
+												_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "SellLimit", currentTokenPrice*float64(1+(profitPercent/100)), 0).Result()
+												if err != nil {
+													Die(err)
+												} else {
+													_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "StopLimit", currentTokenPrice*float64(1-(stopLossPercent/100)), 0).Result()
+													if err != nil {
+														Die(err)
+													}
+												}
+											}
 										}
-										str = fmt.Sprintf("%s\n\nCurrent Price: $%f\nAverage Price (10 days): $%f\nRecent Support: $%f\nRecent Resistance: $%f\nUpside: +%f%s\nDownside: %f%s\n", str, currentTokenPrice, movingAverageShort, recentSupport, recentResistance, upside, "%", downside, "%")
-									} else if currentStatus == "WAITING_TO_SELL" && wallet.TargetCoinBalance.Cmp(big.NewInt(0)) == 1 {
-										// Get the price at which the token was last bought
-										v, err := rdb.HGet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice").Result()
+									} else {
+										// currentTokenPrice is not a BUY, HODL
+										str = fmt.Sprintf("Verdict => HODL\n\nCurrent Price: $%f\nBuy Limit: $%f\n\nCurrent Price is higher than Buy Limit Price\n", currentTokenPrice, buyLimit)
+									}
+								}
+							}
+						} else if currentStatus == "WAITING_TO_SELL" && wallet.TargetCoinBalance.Cmp(big.NewInt(0)) == 1 {
+
+							v, err := rdb.HGet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "SellLimit").Result()
+							if err == redis.Nil {
+								e := "No Sell limit is set. Please set a sell limit in the web interface or through the bot."
+								bot.OutboundChannel <- e
+								log.Println(e)
+							} else if err != nil {
+								bot.OutboundChannel <- err.Error()
+								log.Println(err)
+							} else {
+								sellLimit, err := strconv.ParseFloat(v, 64)
+								if err != nil {
+									bot.OutboundChannel <- err.Error()
+									log.Println(err)
+								} else {
+									v, err := rdb.HGet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "StopLimit").Result()
+									if err == redis.Nil {
+										e := "No stop limit is set. Please set a stop limit in the web interface or through the bot."
+										bot.OutboundChannel <- e
+										log.Println(e)
+									} else if err != nil {
+										bot.OutboundChannel <- err.Error()
+										log.Println(err)
+									} else {
+										stopLimit, err := strconv.ParseFloat(v, 64)
 										if err != nil {
 											bot.OutboundChannel <- err.Error()
 											log.Println(err)
 										} else {
-											// Convert price from string to float64
-											previousTokenPrice, err := strconv.ParseFloat(v, 64)
-											if err != nil {
+											v, err := rdb.HGet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice").Result()
+											if err == redis.Nil {
+												e := "Could not find previous token price."
+												bot.OutboundChannel <- e
+												log.Println(e)
+											} else if err != nil {
 												bot.OutboundChannel <- err.Error()
 												log.Println(err)
 											} else {
-												// Check if currentTokenPrice is a SELL based on technical analysis, previousTokenPrice, profitPercent and stopLossPercent
-												isASell, typ, value := technical.IsASell(previousTokenPrice, currentTokenPrice, movingAverageShort, movingAverageLong, recentSupport, recentResistance, int64(profitPercent), int64(stopLossPercent))
+												previousTokenPrice, err := strconv.ParseFloat(v, 64)
+												if err != nil {
+													bot.OutboundChannel <- err.Error()
+													log.Println(err)
+												} else {
+													// Check if currentTokenPrice is a SELL
+													isASell, typ, value := technical.IsASell(currentTokenPrice, previousTokenPrice, sellLimit, stopLimit)
 
-												// If currentTokenPrice is a SELL
-												if isASell {
-													// Print stats
-													str = fmt.Sprintf("Verdict => SELL (%s: %.2f%s)", typ, value, "%")
-													if err := router.DoSwap(wallet, targetTokenContractAddress, wallet.TargetCoinBalance, stableTokenContractAddress, variables.BotMode); err != nil {
-														if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
-															err = errors.New("Request expired/declined")
-															bot.OutboundChannel <- err.Error()
-															log.Println(err)
+													if isASell {
+														// Print stats
+														str = fmt.Sprintf("Verdict => SELL (%s: %.2f%s)", typ, value, "%")
+														if err := router.DoSwap(wallet, targetTokenContractAddress, wallet.TargetCoinBalance, stableTokenContractAddress, variables.BotMode); err != nil {
+															if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
+																err = errors.New("Request expired/declined")
+																bot.OutboundChannel <- err.Error()
+																log.Println(err)
+															} else {
+																Die(err)
+															}
 														} else {
-															Die(err)
+															_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "BuyLimit", 0, 0).Result()
+															if err != nil {
+																Die(err)
+															}
 														}
 													} else {
-														_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice", 0, 0).Result()
-														if err != nil {
-															Die(err)
-														}
+														// currentTokenPrice is not a SELL, HODL
+														str = fmt.Sprintf("Verdict => HODL\n\nCurrent Price: $%f\nSell Limit: $%f\n\nCurrent Price is lower than Sell Limit Price\n", currentTokenPrice, sellLimit)
 													}
-												} else {
-													// currentTokenPrice is not a SELL, HODL
-													str = "Verdict => HODL"
 												}
-												str = fmt.Sprintf("%s\n\nCurrent Price: $%f\nAverage Price (10 days): $%f\nRecent Support: $%f\nRecent Resistance: $%f\n%s: %f%s\n", str, currentTokenPrice, movingAverageShort, recentSupport, recentResistance, typ, value, "%")
 											}
 										}
 									}
-									variables.Verdict = str
-									log.Println(variables.Verdict)
 								}
 							}
 						}
+						variables.Verdict = str
+						log.Println(variables.Verdict)
 					}
 				}
 			}
