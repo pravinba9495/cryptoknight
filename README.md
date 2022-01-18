@@ -98,6 +98,13 @@ The following command line parameters are supported.
 </tr>
 
 <tr>
+<td>slippagePercent</td>
+<td>Slipage tolerance during swap. Example: 1, 2, ..50</td>
+<td>integer</td>
+<td>1</td>
+</tr>
+
+<tr>
 <td>redisAddress</td>
 <td>Redis server host. Example: 192.168.1.100:6379</td>
 <td>string</td>
@@ -159,6 +166,7 @@ docker run -d --name kryptonite pravinba9495/kryptonite:latest kryptonite \
                 --chainId=<CHAIN_ID> \
                 --stableToken=<STABLE_TOKEN> \
                 --targetToken=<TARGET_TOKEN> \
+                --slippagePercent=<SLIPPAGE_PERCENT> \
                 --redisAddress=<REDIS_ADDRESS> \
                 --botToken=<BOT_TOKEN> \
                 --chatId=<CHAT_ID> \
