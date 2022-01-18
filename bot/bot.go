@@ -17,7 +17,7 @@ func Run(botToken string, password string) {
 		go func() {
 			for msg := range OutboundChannel {
 				if msg != "" && ChatID != "" {
-					log.Printf(msg)
+					log.Println(msg)
 					_, err := telegram.SendMessage(botToken, ChatID, msg)
 					if err != nil {
 						log.Println(err)
