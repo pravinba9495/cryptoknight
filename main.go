@@ -49,20 +49,17 @@ func main() {
 
 	if privateKey == "" {
 		err := "privateKey is not provided"
-		log.Fatalln(err)
-		bot.OutboundChannel <- err
+		Die(errors.New(err))
 	}
 
 	if redisAddress == "" {
 		err := "redis address is not provided"
-		bot.OutboundChannel <- err
-		log.Fatalln(err)
+		Die(errors.New(err))
 	}
 
 	if (mode != "MANUAL") && (mode != "AUTO") {
 		err := "unsupported mode"
-		bot.OutboundChannel <- err
-		log.Fatalln(err)
+		Die(errors.New(err))
 	}
 
 	// Set bot mode
@@ -75,29 +72,25 @@ func main() {
 
 	// Check redis ping
 	if err := rdb.Ping(context.TODO()).Err(); err != nil {
-		bot.OutboundChannel <- err.Error()
-		log.Fatalln(err)
+		Die(err)
 	}
 
 	// Initialize wallet
 	wallet, err := (&models.Wallet{}).New(address, privateKey, chainID)
 	if err != nil {
-		bot.OutboundChannel <- err.Error()
-		log.Fatalln(err)
+		Die(err)
 	}
 
 	// Initialize swap router
 	router, err := (&models.Router{}).New(chainID)
 	if err != nil {
-		bot.OutboundChannel <- err.Error()
-		log.Fatalln(err)
+		Die(err)
 	}
 
 	// Get coin list from CoinGecko
 	coins, err := coingecko.GetCoinsList()
 	if err != nil {
-		bot.OutboundChannel <- err.Error()
-		log.Fatalln(err)
+		Die(err)
 	}
 
 	targetCoinID := ""
@@ -109,15 +102,13 @@ func main() {
 	}
 	if targetCoinID == "" {
 		err := "coin could not be found"
-		bot.OutboundChannel <- err
-		log.Fatalln(err)
+		Die(errors.New(err))
 	}
 
 	stableTokenContractAddress, targetTokenContractAddress := helpers.GetTokenAddress(router, stableToken), helpers.GetTokenAddress(router, targetToken)
 	if stableTokenContractAddress == "" || targetTokenContractAddress == "" {
 		err := "token pair does not exist on this chain/network/router"
-		bot.OutboundChannel <- err
-		log.Fatalln(err)
+		Die(errors.New(err))
 	} else {
 		currentStatus := "UNKNOWN"
 
@@ -127,7 +118,6 @@ func main() {
 			// Refresh wallet balance periodically
 			if err := wallet.RefreshWalletBalance(); err != nil {
 				bot.OutboundChannel <- err.Error()
-				log.Println(err)
 			} else {
 
 				// Print wallet address, wallet balance and router contract address on this chain/network
@@ -137,7 +127,6 @@ func main() {
 				// Refresh ERC20 token balances
 				if err := wallet.RefreshTokenBalances(stableTokenContractAddress, targetTokenContractAddress); err != nil {
 					bot.OutboundChannel <- err.Error()
-					log.Println(err)
 				} else {
 
 					// Check current status
@@ -157,7 +146,6 @@ func main() {
 					currentTokenPrice, err := coingecko.GetCoinPrice(targetCoinID)
 					if err != nil {
 						bot.OutboundChannel <- err.Error()
-						log.Println(err)
 					} else {
 						log.Print(fmt.Sprintf("Current Status: %s", currentStatus))
 
@@ -169,18 +157,17 @@ func main() {
 						if currentStatus == "WAITING_TO_BUY" && wallet.StableCoinBalance.Cmp(big.NewInt(0)) > 0 {
 							v, err := rdb.HGet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "BuyLimit").Result()
 							if err == redis.Nil {
-								e := "No Buy limit is set. Please set a buy limit in the web interface or through the bot."
-								bot.OutboundChannel <- e
-								log.Println(e)
+								_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "BuyLimit", 0).Result()
+								if err != nil {
+									Die(err)
+								}
 							} else if err != nil {
 								bot.OutboundChannel <- err.Error()
-								log.Println(err)
 							} else {
 								// Convert price from string to float64
 								buyLimit, err := strconv.ParseFloat(v, 64)
 								if err != nil {
 									bot.OutboundChannel <- err.Error()
-									log.Println(err)
 								} else {
 									// If currentTokenPrice is a BUY
 									if technical.IsABuy(currentTokenPrice, buyLimit) {
@@ -190,20 +177,19 @@ func main() {
 											if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
 												err = errors.New("Request expired/declined")
 												bot.OutboundChannel <- err.Error()
-												log.Println(err)
 											} else {
 												Die(err)
 											}
 										} else {
-											_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice", currentTokenPrice, 0).Result()
+											_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice", currentTokenPrice).Result()
 											if err != nil {
 												Die(err)
 											} else {
-												_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "SellLimit", currentTokenPrice*float64(1+(profitPercent/100)), 0).Result()
+												_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "SellLimit", currentTokenPrice*float64(1+(profitPercent/100))).Result()
 												if err != nil {
 													Die(err)
 												} else {
-													_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "StopLimit", currentTokenPrice*float64(1-(stopLossPercent/100)), 0).Result()
+													_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "StopLimit", currentTokenPrice*float64(1-(stopLossPercent/100))).Result()
 													if err != nil {
 														Die(err)
 													}
@@ -222,43 +208,34 @@ func main() {
 							if err == redis.Nil {
 								e := "No Sell limit is set. Please set a sell limit in the web interface or through the bot."
 								bot.OutboundChannel <- e
-								log.Println(e)
 							} else if err != nil {
 								bot.OutboundChannel <- err.Error()
-								log.Println(err)
 							} else {
 								sellLimit, err := strconv.ParseFloat(v, 64)
 								if err != nil {
 									bot.OutboundChannel <- err.Error()
-									log.Println(err)
 								} else {
 									v, err := rdb.HGet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "StopLimit").Result()
 									if err == redis.Nil {
 										e := "No stop limit is set. Please set a stop limit in the web interface or through the bot."
 										bot.OutboundChannel <- e
-										log.Println(e)
 									} else if err != nil {
 										bot.OutboundChannel <- err.Error()
-										log.Println(err)
 									} else {
 										stopLimit, err := strconv.ParseFloat(v, 64)
 										if err != nil {
 											bot.OutboundChannel <- err.Error()
-											log.Println(err)
 										} else {
 											v, err := rdb.HGet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "PreviousTokenPrice").Result()
 											if err == redis.Nil {
 												e := "Could not find previous token price."
 												bot.OutboundChannel <- e
-												log.Println(e)
 											} else if err != nil {
 												bot.OutboundChannel <- err.Error()
-												log.Println(err)
 											} else {
 												previousTokenPrice, err := strconv.ParseFloat(v, 64)
 												if err != nil {
 													bot.OutboundChannel <- err.Error()
-													log.Println(err)
 												} else {
 													// Check if currentTokenPrice is a SELL
 													isASell, typ, value := technical.IsASell(currentTokenPrice, previousTokenPrice, sellLimit, stopLimit)
@@ -270,12 +247,11 @@ func main() {
 															if err.Error() == "REQUEST_EXPIRED_OR_DECLINED" {
 																err = errors.New("Request expired/declined")
 																bot.OutboundChannel <- err.Error()
-																log.Println(err)
 															} else {
 																Die(err)
 															}
 														} else {
-															_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "BuyLimit", 0, 0).Result()
+															_, err := rdb.HSet(context.TODO(), strings.ToUpper(stableToken)+"_"+strings.ToUpper(targetToken), "BuyLimit", 0).Result()
 															if err != nil {
 																Die(err)
 															}
@@ -304,10 +280,8 @@ func main() {
 
 func Die(err error) {
 	bot.OutboundChannel <- err.Error()
-	log.Println(err)
 	err = errors.New("Bot is now going to die.")
 	bot.OutboundChannel <- err.Error()
-	log.Println(err)
 	time.Sleep(5 * time.Second)
 	os.Exit(1)
 }

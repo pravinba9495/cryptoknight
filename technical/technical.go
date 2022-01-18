@@ -1,9 +1,11 @@
 package technical
 
+// IsABuy checks if the currentTokenPrice is at a BUY
 func IsABuy(currentTokenPrice float64, buyLimit float64) bool {
-	return buyLimit > currentTokenPrice
+	return currentTokenPrice < buyLimit
 }
 
+// IsASell checks if the currentTokenPrice is at a SELL
 func IsASell(currentTokenPrice float64, previousTokenPrice float64, sellLimit float64, stopLimit float64) (bool, string, float64) {
 	isASell, typ, value := false, "", 0.0
 	if currentTokenPrice > sellLimit {
