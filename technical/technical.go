@@ -1,8 +1,17 @@
 package technical
 
+import (
+	"math"
+
+	"github.com/pravinba9495/kryptonite/variables"
+)
+
 // IsABuy checks if the currentTokenPrice is at a BUY
-func IsABuy(currentTokenPrice float64, buyLimit float64) bool {
-	return currentTokenPrice < buyLimit
+func IsABuy(currentTokenPrice float64, buyLimit float64, tokenAmountFromSwap float64, tokenAmountFromPrice float64) bool {
+	slippage := math.Abs((tokenAmountFromPrice - tokenAmountFromSwap) * 100 / tokenAmountFromPrice)
+	cond1 := float64(variables.Slippage) >= slippage
+	cond2 := currentTokenPrice <= buyLimit
+	return cond1 && cond2
 }
 
 // IsASell checks if the currentTokenPrice is at a SELL
