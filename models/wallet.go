@@ -8,12 +8,13 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/pravinba9495/kryptonite/networks"
+	"github.com/pravinba9495/kryptonite/store"
 )
 
 // Wallet refers to the crypto wallet
@@ -138,8 +139,8 @@ func (w *Wallet) GetMainAccountBalance() (*big.Int, error) {
 	return balance, nil
 }
 
-// SendTransaction creates and broadcasts a transaction to the blockchain after signing the payload
-func (w *Wallet) SendTransaction(toAddress *common.Address, tx *types.LegacyTx) (*types.Transaction, error) {
+// ApproveSpender approves ERC20 access for 1inch router
+func (w *Wallet) ApproveSpender(routerAddress *common.Address, tokenContractAddress *common.Address) (*types.Transaction, error) {
 	rpc, err := networks.GetRpcURLByChainID(w.ChainID)
 	if err != nil {
 		return nil, err
@@ -153,28 +154,29 @@ func (w *Wallet) SendTransaction(toAddress *common.Address, tx *types.LegacyTx) 
 	if err != nil {
 		return nil, err
 	}
-	if tx.Gas == 0 {
-		g, err := client.EstimateGas(context.TODO(), ethereum.CallMsg{
-			Data: tx.Data,
-		})
-		if err != nil {
-			return nil, err
-		}
-		tx.Gas = g
-	}
-	t := &types.LegacyTx{
-		Nonce:    nonce,
-		GasPrice: tx.GasPrice,
-		Gas:      uint64(1.25 * float64(tx.Gas)),
-		To:       tx.To,
-		Value:    big.NewInt(0),
-		Data:     tx.Data,
-	}
-	signedTx, err := types.SignNewTx(w.PrivateKey, types.LatestSignerForChainID(big.NewInt(int64(w.ChainID))), t)
+	chainID, err := client.ChainID(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	if err := client.SendTransaction(context.TODO(), signedTx); err != nil {
+
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	auth, _ := bind.NewKeyedTransactorWithChainID(w.PrivateKey, chainID)
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.Value = big.NewInt(0)
+	auth.GasLimit = 11500000
+	auth.GasPrice = gasPrice
+
+	instance, err := store.NewStore(*tokenContractAddress, client)
+	if err != nil {
+		return nil, err
+	}
+
+	signedTx, err := instance.Approve(auth, *routerAddress, w.StableCoinBalance)
+	if err != nil {
 		return nil, err
 	}
 	return signedTx, nil
