@@ -5,8 +5,6 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"math/big"
-	"os"
-	"os/exec"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -66,57 +64,20 @@ func (w *Wallet) RefreshWalletBalance() error {
 
 // RefreshTokenBalance refreshes the specified ERC20 token balance
 func (w *Wallet) RefreshTokenBalances(stableTokenContractAddress string, targetTokenContractAddress string) error {
-	rpc, err := networks.GetRpcURLByChainID(w.ChainID)
+	stableAddr := common.HexToAddress(stableTokenContractAddress)
+	targetAddr := common.HexToAddress(targetTokenContractAddress)
+
+	n1, err := w.GetTokenBalance(&stableAddr)
 	if err != nil {
-		return err
+		return nil
 	}
-	client, err := ethclient.Dial(rpc)
+	w.StableCoinBalance = n1
+
+	n2, err := w.GetTokenBalance(&targetAddr)
 	if err != nil {
-		return err
+		return nil
 	}
-	defer client.Close()
-
-	path, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	_, err = exec.Command(path+"/node-eth", "--address="+w.Address.String(), "--token="+targetTokenContractAddress, "--provider="+rpc).Output()
-	if err != nil {
-		return err
-	}
-	out, err := exec.Command("cat", targetTokenContractAddress+".txt").Output()
-	if err != nil {
-		return err
-	}
-	balance := string(out)
-
-	n1 := new(big.Int)
-	n1, ok := n1.SetString(balance, 10)
-	if !ok {
-		return errors.New("SetString: error")
-	}
-
-	w.TargetCoinBalance = n1
-
-	_, err = exec.Command(path+"/node-eth", "--address="+w.Address.String(), "--token="+stableTokenContractAddress, "--provider="+rpc).Output()
-	if err != nil {
-		return err
-	}
-	out, err = exec.Command("cat", stableTokenContractAddress+".txt").Output()
-	if err != nil {
-		return err
-	}
-	balance = string(out)
-
-	n2 := new(big.Int)
-	n2, ok = n2.SetString(balance, 10)
-	if !ok {
-		return errors.New("SetString: error")
-	}
-
-	w.StableCoinBalance = n2
-
+	w.TargetCoinBalance = n2
 	return nil
 }
 
@@ -137,6 +98,26 @@ func (w *Wallet) GetMainAccountBalance() (*big.Int, error) {
 		return nil, err
 	}
 	return balance, nil
+}
+
+// GetTokenBalance returns the ERC20 token balance from the given token contract address
+func (w *Wallet) GetTokenBalance(tokenContractAddress *common.Address) (*big.Int, error) {
+	rpc, err := networks.GetRpcURLByChainID(w.ChainID)
+	if err != nil {
+		return nil, err
+	}
+	client, err := ethclient.Dial(rpc)
+	if err != nil {
+		return nil, err
+	}
+	defer client.Close()
+
+	instance, err := store.NewStore(*tokenContractAddress, client)
+	if err != nil {
+		return nil, err
+	}
+
+	return instance.BalanceOf(&bind.CallOpts{}, *w.Address)
 }
 
 // ApproveSpender approves ERC20 access for 1inch router
