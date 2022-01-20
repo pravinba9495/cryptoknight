@@ -67,13 +67,39 @@ import { Wait } from "./utils/wait";
             )) || 0;
 
           if (buyLimitPrice >= currentPrice) {
-            await PrepareForSwap(
-              router,
-              wallet,
-              stableTokenContractAddress,
-              stableTokenBalance,
-              targetTokenContractAddress
-            );
+            const params = {
+              fromTokenAddress: stableTokenContractAddress,
+              toTokenAddress: targetTokenContractAddress,
+              amount: stableTokenBalance,
+            };
+            const quoteResponseDto = await router.GetQuote(params);
+            const maxToTokenAmount =
+              stableTokenBalance /
+              Math.pow(10, quoteResponseDto.fromToken.decimals) /
+              currentPrice;
+            const minToTokenAmount =
+              quoteResponseDto.toTokenAmount /
+              Math.pow(10, quoteResponseDto.toToken.decimals);
+            const actualSlippage = Math.abs(
+              ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount
+            ).toFixed(2);
+
+            if (actualSlippage <= Args.slippagePercent) {
+              console.log(
+                `BUY ${minToTokenAmount} ${quoteResponseDto.toToken.symbol} (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage}%, Slippage Allowed: ${Args.slippagePercent}%)`
+              );
+              await PrepareForSwap(
+                router,
+                wallet,
+                stableTokenContractAddress,
+                stableTokenBalance,
+                targetTokenContractAddress
+              );
+            } else {
+              console.log(
+                `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage}%, Slippage Allowed: ${Args.slippagePercent}%)`
+              );
+            }
           } else {
             console.log(
               `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice})`
@@ -96,13 +122,39 @@ import { Wait } from "./utils/wait";
             currentPrice >= sellLimitPrice ||
             stopLimitPrice >= currentPrice
           ) {
-            await PrepareForSwap(
-              router,
-              wallet,
-              targetTokenContractAddress,
-              targetTokenBalance,
-              stableTokenContractAddress
-            );
+            const params = {
+              fromTokenAddress: targetTokenContractAddress,
+              toTokenAddress: stableTokenContractAddress,
+              amount: targetTokenBalance,
+            };
+            const quoteResponseDto = await router.GetQuote(params);
+            const maxToTokenAmount =
+              targetTokenBalance /
+              Math.pow(10, quoteResponseDto.fromToken.decimals) /
+              currentPrice;
+            const minToTokenAmount =
+              quoteResponseDto.toTokenAmount /
+              Math.pow(10, quoteResponseDto.toToken.decimals);
+            const actualSlippage = Math.abs(
+              ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount
+            ).toFixed(2);
+
+            if (actualSlippage <= Args.slippagePercent) {
+              console.log(
+                `SELL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage}%, Slippage Allowed: ${Args.slippagePercent}%)`
+              );
+              await PrepareForSwap(
+                router,
+                wallet,
+                targetTokenContractAddress,
+                targetTokenBalance,
+                stableTokenContractAddress
+              );
+            } else {
+              console.log(
+                `HODL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage}%, Slippage Allowed: ${Args.slippagePercent}%)`
+              );
+            }
           } else {
             console.log("HODL");
           }
