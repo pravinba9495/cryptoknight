@@ -64,7 +64,7 @@ export const PrepareForSwap = async (
           }
           await Revoke(wallet, router, fromTokenContractAddress);
           while (true) {
-            console.log(`Revoking router access to be on the safe side`);
+            console.log(`Refreshing router token allowance`);
             const fromTokenAllowance = await router.GetApprovedAllowance(
               fromTokenContractAddress,
               Args.publicKey
