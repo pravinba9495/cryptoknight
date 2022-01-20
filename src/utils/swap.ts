@@ -16,7 +16,7 @@ export const Swap = async (
 ): Promise<string> => {
   console.log(`Initiating swapping the tokens`);
   const swapTx = await router.GetSwapTransactionData(params);
-  const swapTxGas = await wallet.EstimateGas(swapTx.tx);
+  const swapTxGas = await wallet.EstimateGas(swapTx);
   const swapTxWithGas = {
     ...swapTx,
     gas: swapTxGas,
