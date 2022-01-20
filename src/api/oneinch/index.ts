@@ -13,7 +13,7 @@ export class Router {
   }
 
   /**
-   * GetSwapTransactionData checks the health of the router
+   * GetSwapTransactionData returns the swap data required for the router
    * @param   params Swap parameters to pass to the router
    * @returns Promise<any>
    */
@@ -23,6 +23,25 @@ export class Router {
     })
       .then((response) => response.data)
       .then((response) => response.tx as any)
+      .catch((error) => {
+        if (error.response) {
+          return Promise.reject(error.response.data);
+        } else {
+          return Promise.reject(error.request);
+        }
+      });
+  }
+
+  /**
+   * GetQuote gets the swap quote from 1inch
+   * @param   params Quote parameters to pass to the router
+   * @returns Promise<any>
+   */
+  async GetQuote(params: any): Promise<any> {
+    return Axios.get<any>(`https://api.1inch.io/v4.0/${this.ChainID}/quote`, {
+      params,
+    })
+      .then((response) => response.data)
       .catch((error) => {
         if (error.response) {
           return Promise.reject(error.response.data);
