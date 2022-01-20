@@ -2,6 +2,7 @@ import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
 import { Approve } from "./approve";
 import { Args } from "./flags";
+import { Revoke } from "./revoke";
 import { Swap } from "./swap";
 import { Wait } from "./wait";
 
@@ -25,8 +26,9 @@ export const PrepareForSwap = async (
     try {
       let approveDone = false;
       let swapDone = false;
+      let revokeDone = false;
 
-      while (!swapDone || !approveDone) {
+      while (!swapDone || !approveDone || !revokeDone) {
         const fromTokenAllowance = await router.GetApprovedAllowance(
           fromTokenContractAddress,
           Args.publicKey
@@ -55,6 +57,20 @@ export const PrepareForSwap = async (
             );
             if (fromTokenBalance === 0 && toTokenBalance !== 0) {
               swapDone = true;
+              await Wait(5);
+              break;
+            }
+            await Wait(5);
+          }
+          await Revoke(wallet, router, fromTokenContractAddress);
+          while (true) {
+            console.log(`Revoking router access to be on the safe side`);
+            const fromTokenAllowance = await router.GetApprovedAllowance(
+              fromTokenContractAddress,
+              Args.publicKey
+            );
+            if (fromTokenAllowance === 0) {
+              revokeDone = true;
               await Wait(5);
               break;
             }
