@@ -42,6 +42,9 @@ import { Wait } from "./utils/wait";
           throw "tokenContractAddress cannot be empty";
         }
 
+        console.log(`Stable Token Contract Address (${Args.stableToken}): ${stableTokenContractAddress}`);
+        console.log(`Target Token Contract Address (${Args.targetToken}): ${targetTokenContractAddress}`);
+
         const stableTokenBalance = await wallet.GetTokenBalance(
           stableTokenContractAddress
         );
@@ -80,29 +83,50 @@ import { Wait } from "./utils/wait";
             const minToTokenAmount =
               quoteResponseDto.toTokenAmount /
               Math.pow(10, quoteResponseDto.toToken.decimals);
-            const actualSlippage = Math.abs(
-              ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount
-            ).toFixed(2);
+            const actualSlippage =
+              ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount;
 
             if (actualSlippage <= Args.slippagePercent) {
               console.log(
-                `BUY ${minToTokenAmount} ${quoteResponseDto.toToken.symbol} (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage}%, Slippage Allowed: ${Args.slippagePercent}%)`
+                `BUY ${minToTokenAmount} ${
+                  quoteResponseDto.toToken.symbol
+                } (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                  2
+                )}%, Slippage Allowed: +${Args.slippagePercent}%)`
               );
-              await PrepareForSwap(
-                router,
-                wallet,
-                stableTokenContractAddress,
-                stableTokenBalance,
-                targetTokenContractAddress
-              );
+              try {
+                await PrepareForSwap(
+                  router,
+                  wallet,
+                  stableTokenContractAddress,
+                  stableTokenBalance,
+                  targetTokenContractAddress
+                );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "SellLimitPrice",
+                  (Args.profitPercent / 100 + 1) * currentPrice
+                );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "StopLimitPrice",
+                  (1 - Args.stopLossPercent / 100) * currentPrice
+                );
+                currentStatus = "WAITING_TO_SELL";
+              } catch (error) {
+                console.error(error);
+                process.exit(1);
+              }
             } else {
               console.log(
-                `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage}%, Slippage Allowed: ${Args.slippagePercent}%)`
+                `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                  2
+                )}%, Slippage Allowed: +${Args.slippagePercent}%)`
               );
             }
           } else {
             console.log(
-              `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice})`
+              `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%)`
             );
           }
         } else if (currentStatus === "WAITING_TO_SELL") {
@@ -129,34 +153,60 @@ import { Wait } from "./utils/wait";
             };
             const quoteResponseDto = await router.GetQuote(params);
             const maxToTokenAmount =
-              targetTokenBalance /
-              Math.pow(10, quoteResponseDto.fromToken.decimals) /
+              (targetTokenBalance /
+                Math.pow(10, quoteResponseDto.fromToken.decimals)) *
               currentPrice;
             const minToTokenAmount =
               quoteResponseDto.toTokenAmount /
               Math.pow(10, quoteResponseDto.toToken.decimals);
-            const actualSlippage = Math.abs(
-              ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount
-            ).toFixed(2);
+            const actualSlippage =
+              ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount;
 
             if (actualSlippage <= Args.slippagePercent) {
               console.log(
-                `SELL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage}%, Slippage Allowed: ${Args.slippagePercent}%)`
+                `SELL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                  2
+                )}%, Slippage Allowed: +${Args.slippagePercent}%)`
               );
-              await PrepareForSwap(
-                router,
-                wallet,
-                targetTokenContractAddress,
-                targetTokenBalance,
-                stableTokenContractAddress
-              );
+              try {
+                await PrepareForSwap(
+                  router,
+                  wallet,
+                  targetTokenContractAddress,
+                  targetTokenBalance,
+                  stableTokenContractAddress
+                );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "BuyLimitPrice",
+                  0
+                );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "StopLimitPrice",
+                  0
+                );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "SellLimitPrice",
+                  9999999999
+                );
+                currentStatus = "WAITING_TO_BUY";
+              } catch (error) {
+                console.error(error);
+                process.exit(1);
+              }
             } else {
               console.log(
-                `HODL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage}%, Slippage Allowed: ${Args.slippagePercent}%)`
+                `HODL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                  2
+                )}%, Slippage Allowed: +${Args.slippagePercent}%)`
               );
             }
           } else {
-            console.log("HODL");
+            console.log(
+              `HODL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%)`
+            );
           }
         } else {
           console.log(`Current Status: ${currentStatus}. Nothing to do`);
