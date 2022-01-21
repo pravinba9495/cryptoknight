@@ -105,12 +105,12 @@ import { Wait } from "./utils/wait";
                 await redis.hSet(
                   `${Args.stableToken}_${Args.targetToken}`,
                   "SellLimitPrice",
-                  (Args.profitPercent / 100 + 1) * currentPrice
+                  ((Args.profitPercent / 100) + 1) * currentPrice
                 );
                 await redis.hSet(
                   `${Args.stableToken}_${Args.targetToken}`,
                   "StopLimitPrice",
-                  (1 - Args.stopLossPercent / 100) * currentPrice
+                  (1 - (Args.stopLossPercent / 100)) * currentPrice
                 );
                 currentStatus = "WAITING_TO_SELL";
               } catch (error) {
