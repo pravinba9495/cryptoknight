@@ -73,7 +73,7 @@ import { Wait } from "./utils/wait";
             const params = {
               fromTokenAddress: stableTokenContractAddress,
               toTokenAddress: targetTokenContractAddress,
-              amount: stableTokenBalance,
+              amount: BigInt(stableTokenBalance).toString(),
             };
             const quoteResponseDto = await router.GetQuote(params);
             const maxToTokenAmount =
@@ -149,7 +149,7 @@ import { Wait } from "./utils/wait";
             const params = {
               fromTokenAddress: targetTokenContractAddress,
               toTokenAddress: stableTokenContractAddress,
-              amount: targetTokenBalance,
+              amount: BigInt(targetTokenBalance).toString(),
             };
             const quoteResponseDto = await router.GetQuote(params);
             const maxToTokenAmount =

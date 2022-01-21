@@ -16,7 +16,7 @@ export const Revoke = async (
   console.log(`Revoking the router access to the tokens`);
   const revokeTx = await router.GetApproveTransactionData(
     tokenContractAddress,
-    0
+    "0"
   );
   const revokeTxGas = await wallet.EstimateGas(revokeTx);
   const revokeTxWithGas = {

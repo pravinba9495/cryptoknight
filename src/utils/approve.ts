@@ -13,7 +13,7 @@ export const Approve = async (
   wallet: Wallet,
   router: Router,
   tokenContractAddress: string,
-  amount: number
+  amount: string
 ): Promise<string> => {
   console.log(
     `Approving the router to access the required amount of tokens for a swap`

@@ -153,14 +153,14 @@ export class Router {
    */
   async GetApproveTransactionData(
     tokenAddress: string,
-    amount: number
+    amount: string
   ): Promise<any> {
     return Axios.get<any>(
       `https://api.1inch.io/v4.0/${this.ChainID}/approve/transaction`,
       {
         params: {
           tokenAddress,
-          amount: String(amount),
+          amount,
         },
       }
     )

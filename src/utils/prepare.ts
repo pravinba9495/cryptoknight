@@ -40,7 +40,7 @@ export const PrepareForSwap = async (
           const params = {
             fromTokenAddress: fromTokenContractAddress,
             toTokenAddress: toTokenContractAddress,
-            amount: fromTokenBalance,
+            amount: BigInt(fromTokenBalance).toString(),
             fromAddress: wallet.Address,
             slippage: Args.slippagePercent,
             disableEstimate: false,
@@ -81,7 +81,7 @@ export const PrepareForSwap = async (
             wallet,
             router,
             fromTokenContractAddress,
-            fromTokenBalance
+            BigInt(fromTokenBalance).toString()
           );
           while (true) {
             console.log(`Refreshing router token allowance`);
