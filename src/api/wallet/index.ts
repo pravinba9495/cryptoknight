@@ -30,24 +30,24 @@ export class Wallet {
 
   /**
    * GetBalance returns the wallet balance
-   * @returns Promise<number> Wallet balance
+   * @returns Promise<bigint> Wallet balance
    */
-  async GetBalance(): Promise<number> {
+  async GetBalance(): Promise<bigint> {
     const web3 = new Web3(GetRpcURLByChainID(this.ChainID));
     const balance = await web3.eth.getBalance(this.Address);
-    return Number(balance);
+    return BigInt(balance);
   }
 
   /**
    * GetTokenBalance returns the token balance at the given contract address
    * @param tokenContractAddress
-   * @returns Promise<number> Token balance
+   * @returns Promise<bigint> Token balance
    */
-  async GetTokenBalance(tokenContractAddress: string): Promise<number> {
+  async GetTokenBalance(tokenContractAddress: string): Promise<bigint> {
     const web3 = new Web3(GetRpcURLByChainID(this.ChainID));
     const contract = new web3.eth.Contract(ERC20Abi, tokenContractAddress);
     const balance = await contract.methods.balanceOf(this.Address).call();
-    return Number(balance);
+    return BigInt(balance);
   }
 
   /**

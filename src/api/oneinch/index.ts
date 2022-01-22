@@ -119,13 +119,13 @@ export class Router {
    * GetApprovedAllowance returns the contract address of the router by the chain id
    * @param tokenAddress Token Contract Address
    * @param walletAddress Wallet Address
-   * @returns Promise<number>
+   * @returns Promise<bigint>
    */
   async GetApprovedAllowance(
     tokenAddress: string,
     walletAddress: string
-  ): Promise<number> {
-    return Axios.get<number>(
+  ): Promise<bigint> {
+    return Axios.get<bigint>(
       `https://api.1inch.io/v4.0/${this.ChainID}/approve/allowance`,
       {
         params: {
@@ -135,7 +135,7 @@ export class Router {
       }
     )
       .then((response) => response.data)
-      .then((response: any) => Number(response.allowance))
+      .then((response: any) => BigInt(response.allowance))
       .catch((error) => {
         if (error.response) {
           return Promise.reject(error.response.data);

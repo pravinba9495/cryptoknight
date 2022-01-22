@@ -19,7 +19,7 @@ export const PrepareForSwap = async (
   router: Router,
   wallet: Wallet,
   fromTokenContractAddress: string,
-  fromTokenBalance: number,
+  fromTokenBalance: bigint,
   toTokenContractAddress: string
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
@@ -40,7 +40,7 @@ export const PrepareForSwap = async (
           const params = {
             fromTokenAddress: fromTokenContractAddress,
             toTokenAddress: toTokenContractAddress,
-            amount: BigInt(fromTokenBalance).toString(),
+            amount: fromTokenBalance.toString(),
             fromAddress: wallet.Address,
             slippage: Args.slippagePercent,
             disableEstimate: false,
@@ -55,7 +55,10 @@ export const PrepareForSwap = async (
             const toTokenBalance = await wallet.GetTokenBalance(
               toTokenContractAddress
             );
-            if (fromTokenBalance === 0 && toTokenBalance !== 0) {
+            if (
+              fromTokenBalance === BigInt(0) &&
+              toTokenBalance !== BigInt(0)
+            ) {
               swapDone = true;
               await Wait(5);
               break;
@@ -69,7 +72,7 @@ export const PrepareForSwap = async (
               fromTokenContractAddress,
               Args.publicKey
             );
-            if (fromTokenAllowance === 0) {
+            if (fromTokenAllowance === BigInt(0)) {
               revokeDone = true;
               await Wait(5);
               break;
@@ -81,7 +84,7 @@ export const PrepareForSwap = async (
             wallet,
             router,
             fromTokenContractAddress,
-            BigInt(fromTokenBalance).toString()
+            fromTokenBalance.toString()
           );
           while (true) {
             console.log(`Refreshing router token allowance`);

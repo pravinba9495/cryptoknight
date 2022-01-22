@@ -42,8 +42,12 @@ import { Wait } from "./utils/wait";
           throw "tokenContractAddress cannot be empty";
         }
 
-        console.log(`Stable Token Contract Address (${Args.stableToken}): ${stableTokenContractAddress}`);
-        console.log(`Target Token Contract Address (${Args.targetToken}): ${targetTokenContractAddress}`);
+        console.log(
+          `Stable Token Contract Address (${Args.stableToken}): ${stableTokenContractAddress}`
+        );
+        console.log(
+          `Target Token Contract Address (${Args.targetToken}): ${targetTokenContractAddress}`
+        );
 
         const stableTokenBalance = await wallet.GetTokenBalance(
           stableTokenContractAddress
@@ -52,10 +56,16 @@ import { Wait } from "./utils/wait";
           targetTokenContractAddress
         );
 
-        if (stableTokenBalance !== 0 && targetTokenBalance === 0) {
+        if (
+          stableTokenBalance !== BigInt(0) &&
+          targetTokenBalance === BigInt(0)
+        ) {
           currentStatus = "WAITING_TO_BUY";
         }
-        if (stableTokenBalance === 0 && targetTokenBalance !== 0) {
+        if (
+          stableTokenBalance === BigInt(0) &&
+          targetTokenBalance !== BigInt(0)
+        ) {
           currentStatus = "WAITING_TO_SELL";
         }
 
@@ -64,25 +74,29 @@ import { Wait } from "./utils/wait";
 
         if (currentStatus === "WAITING_TO_BUY") {
           const buyLimitPrice =
-            (await redis.hGet(
-              `${Args.stableToken}_${Args.targetToken}`,
-              "BuyLimitPrice"
-            )) || 0;
+            Number(
+              await redis.hGet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "BuyLimitPrice"
+              )
+            ) || 0;
 
           if (buyLimitPrice >= currentPrice) {
             const params = {
               fromTokenAddress: stableTokenContractAddress,
               toTokenAddress: targetTokenContractAddress,
-              amount: BigInt(stableTokenBalance).toString(),
+              amount: stableTokenBalance.toString(),
             };
             const quoteResponseDto = await router.GetQuote(params);
             const maxToTokenAmount =
-              stableTokenBalance /
-              Math.pow(10, quoteResponseDto.fromToken.decimals) /
-              currentPrice;
-            const minToTokenAmount =
-              quoteResponseDto.toTokenAmount /
-              Math.pow(10, quoteResponseDto.toToken.decimals);
+              Number(
+                stableTokenBalance /
+                  BigInt(Math.pow(10, quoteResponseDto.fromToken.decimals))
+              ) / currentPrice;
+            const minToTokenAmount = Number(
+              BigInt(quoteResponseDto.toTokenAmount) /
+                BigInt(Math.pow(10, quoteResponseDto.toToken.decimals))
+            );
             const actualSlippage =
               ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount;
 
@@ -105,12 +119,12 @@ import { Wait } from "./utils/wait";
                 await redis.hSet(
                   `${Args.stableToken}_${Args.targetToken}`,
                   "SellLimitPrice",
-                  ((Args.profitPercent / 100) + 1) * currentPrice
+                  (Args.profitPercent / 100 + 1) * currentPrice
                 );
                 await redis.hSet(
                   `${Args.stableToken}_${Args.targetToken}`,
                   "StopLimitPrice",
-                  (1 - (Args.stopLossPercent / 100)) * currentPrice
+                  (1 - Args.stopLossPercent / 100) * currentPrice
                 );
                 currentStatus = "WAITING_TO_SELL";
               } catch (error) {
@@ -131,16 +145,20 @@ import { Wait } from "./utils/wait";
           }
         } else if (currentStatus === "WAITING_TO_SELL") {
           const stopLimitPrice =
-            (await redis.hGet(
-              `${Args.stableToken}_${Args.targetToken}`,
-              "StopLimitPrice"
-            )) || 0;
+            Number(
+              await redis.hGet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "StopLimitPrice"
+              )
+            ) || 0;
 
           const sellLimitPrice =
-            (await redis.hGet(
-              `${Args.stableToken}_${Args.targetToken}`,
-              "SellLimitPrice"
-            )) || 9999999999;
+            Number(
+              await redis.hGet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "SellLimitPrice"
+              )
+            ) || 9999999999;
 
           if (
             currentPrice >= sellLimitPrice ||
@@ -149,13 +167,14 @@ import { Wait } from "./utils/wait";
             const params = {
               fromTokenAddress: targetTokenContractAddress,
               toTokenAddress: stableTokenContractAddress,
-              amount: BigInt(targetTokenBalance).toString(),
+              amount: targetTokenBalance.toString(),
             };
             const quoteResponseDto = await router.GetQuote(params);
             const maxToTokenAmount =
-              (targetTokenBalance /
-                Math.pow(10, quoteResponseDto.fromToken.decimals)) *
-              currentPrice;
+              Number(
+                targetTokenBalance /
+                  BigInt(Math.pow(10, quoteResponseDto.fromToken.decimals))
+              ) * currentPrice;
             const minToTokenAmount =
               quoteResponseDto.toTokenAmount /
               Math.pow(10, quoteResponseDto.toToken.decimals);
