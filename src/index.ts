@@ -107,9 +107,9 @@ import { Wait } from "./utils/wait";
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
-                }%), Potential Return: ${minToTokenAmount} ${
+                }%, Potential Return: ${minToTokenAmount} ${
                   quoteResponseDto.toToken.symbol
-                }`
+                })`
               );
               try {
                 await PrepareForSwap(
@@ -138,12 +138,16 @@ import { Wait } from "./utils/wait";
               console.log(
                 `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
-                )}%, Slippage Allowed: +${Args.slippagePercent}%)`
+                )}%, Slippage Allowed: +${
+                  Args.slippagePercent
+                }%, Potential Return: ${minToTokenAmount} ${
+                  quoteResponseDto.toToken.symbol
+                })`
               );
             }
           } else {
             console.log(
-              `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%), Potential Return: ${minToTokenAmount} ${quoteResponseDto.toToken.symbol}`
+              `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Potential Return: ${minToTokenAmount} ${quoteResponseDto.toToken.symbol})`
             );
           }
         } else if (currentStatus === "WAITING_TO_SELL") {
@@ -190,9 +194,9 @@ import { Wait } from "./utils/wait";
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
-                }%), Potential Return: ${minToTokenAmount} ${
+                }%, Potential Return: ${minToTokenAmount} ${
                   quoteResponseDto.toToken.symbol
-                }`
+                })`
               );
               try {
                 await PrepareForSwap(
@@ -228,14 +232,14 @@ import { Wait } from "./utils/wait";
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
-                }%), Potential Return: ${minToTokenAmount} ${
+                }%, Potential Return: ${minToTokenAmount} ${
                   quoteResponseDto.toToken.symbol
-                }`
+                })`
               );
             }
           } else {
             console.log(
-              `HODL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%)`
+              `HODL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Potential Return: ${minToTokenAmount} ${quoteResponseDto.toToken.symbol})`
             );
           }
         } else {
