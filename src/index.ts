@@ -2,10 +2,8 @@ import { CoinGecko } from "./api/coingecko";
 import { Router } from "./api/oneinch";
 import { Wallet } from "./api/wallet";
 import { Connect } from "./redis";
-import { Approve } from "./utils/approve";
 import { Args } from "./utils/flags";
 import { PrepareForSwap } from "./utils/prepare";
-import { Swap } from "./utils/swap";
 import { Wait } from "./utils/wait";
 
 (async () => {
