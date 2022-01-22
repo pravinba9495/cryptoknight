@@ -21,28 +21,25 @@ import { Wait } from "./utils/wait";
 
     let currentStatus = "UNKNOWN";
 
+    const routerAddress = await router.GetContractAddress();
+    const tokens = await router.GetSupportedTokens();
+    const stableTokenContractAddress =
+      tokens.find((token) => token.symbol === Args.stableToken)?.address || "";
+    const targetTokenContractAddress =
+      tokens.find((token) => token.symbol === Args.targetToken)?.address || "";
+    if (
+      stableTokenContractAddress === "" ||
+      targetTokenContractAddress === ""
+    ) {
+      throw "tokenContractAddress cannot be empty";
+    }
+
     while (true) {
       try {
         console.log(`\n\n${new Date()}\n`);
-        const routerAddress = await router.GetContractAddress();
         console.log(`Wallet Address: ${wallet.Address}`);
         console.log(`Chain ID: ${wallet.ChainID}`);
         console.log(`Router Contract Address: ${routerAddress}`);
-
-        const tokens = await router.GetSupportedTokens();
-        const stableTokenContractAddress =
-          tokens.find((token) => token.symbol === Args.stableToken)?.address ||
-          "";
-        const targetTokenContractAddress =
-          tokens.find((token) => token.symbol === Args.targetToken)?.address ||
-          "";
-        if (
-          stableTokenContractAddress === "" ||
-          targetTokenContractAddress === ""
-        ) {
-          throw "tokenContractAddress cannot be empty";
-        }
-
         console.log(
           `Stable Token Contract Address (${Args.stableToken}): ${stableTokenContractAddress}`
         );
@@ -70,8 +67,16 @@ import { Wait } from "./utils/wait";
           currentStatus = "WAITING_TO_SELL";
         }
 
+        console.log(`Current Status: ${currentStatus}`);
+
+        const stableCoinID = await CoinGecko.GetCoinID(Args.stableToken);
         const targetCoinID = await CoinGecko.GetCoinID(Args.targetToken);
-        const currentPrice = await CoinGecko.GetCoinPrice(targetCoinID);
+        const stableTokenCurrentPrice = await CoinGecko.GetCoinPrice(
+          stableCoinID
+        );
+        const targetTokenCurrentPrice = await CoinGecko.GetCoinPrice(
+          targetCoinID
+        );
 
         if (currentStatus === "WAITING_TO_BUY") {
           const buyLimitPrice =
@@ -88,26 +93,26 @@ import { Wait } from "./utils/wait";
             amount: stableTokenBalance.toString(),
           };
           const quoteResponseDto = await router.GetQuote(params);
-          const maxToTokenAmount =
-            Number(
-              stableTokenBalance /
-                BigInt(Math.pow(10, quoteResponseDto.fromToken.decimals))
-            ) / currentPrice;
-          const minToTokenAmount = Number(
-            BigInt(quoteResponseDto.toTokenAmount) /
-              BigInt(Math.pow(10, quoteResponseDto.toToken.decimals))
-          );
+          const currentPortfolioValue =
+            (Number(stableTokenBalance) /
+              Math.pow(10, quoteResponseDto.fromToken.decimals)) *
+            stableTokenCurrentPrice;
+          const toTokenAmount =
+            Number(quoteResponseDto.toTokenAmount) /
+            Math.pow(10, quoteResponseDto.toToken.decimals);
+          const toTokenValue = toTokenAmount * targetTokenCurrentPrice;
           const actualSlippage =
-            ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount;
+            ((currentPortfolioValue - toTokenValue) * 100) /
+            currentPortfolioValue;
 
-          if (buyLimitPrice >= currentPrice) {
+          if (buyLimitPrice >= targetTokenCurrentPrice) {
             if (actualSlippage <= Args.slippagePercent) {
               console.log(
-                `BUY (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                `BUY (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
-                }%, Potential Return: ${minToTokenAmount} ${
+                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
                   quoteResponseDto.toToken.symbol
                 })`
               );
@@ -122,12 +127,12 @@ import { Wait } from "./utils/wait";
                 await redis.hSet(
                   `${Args.stableToken}_${Args.targetToken}`,
                   "SellLimitPrice",
-                  (Args.profitPercent / 100 + 1) * currentPrice
+                  (Args.profitPercent / 100 + 1) * targetTokenCurrentPrice
                 );
                 await redis.hSet(
                   `${Args.stableToken}_${Args.targetToken}`,
                   "StopLimitPrice",
-                  (1 - Args.stopLossPercent / 100) * currentPrice
+                  (1 - Args.stopLossPercent / 100) * targetTokenCurrentPrice
                 );
                 currentStatus = "WAITING_TO_SELL";
               } catch (error) {
@@ -136,18 +141,18 @@ import { Wait } from "./utils/wait";
               }
             } else {
               console.log(
-                `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                `HODL (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
-                }%, Potential Return: ${minToTokenAmount} ${
+                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
                   quoteResponseDto.toToken.symbol
                 })`
               );
             }
           } else {
             console.log(
-              `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Potential Return: ${minToTokenAmount} ${quoteResponseDto.toToken.symbol})`
+              `HODL (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
             );
           }
         } else if (currentStatus === "WAITING_TO_SELL") {
@@ -173,28 +178,30 @@ import { Wait } from "./utils/wait";
             amount: targetTokenBalance.toString(),
           };
           const quoteResponseDto = await router.GetQuote(params);
-          const maxToTokenAmount =
-            Number(
-              targetTokenBalance /
-                BigInt(Math.pow(10, quoteResponseDto.fromToken.decimals))
-            ) * currentPrice;
-          const minToTokenAmount =
-            quoteResponseDto.toTokenAmount /
+
+          const currentPortfolioValue =
+            (Number(targetTokenBalance) /
+              Math.pow(10, quoteResponseDto.fromToken.decimals)) *
+            targetTokenCurrentPrice;
+          const toTokenAmount =
+            Number(quoteResponseDto.toTokenAmount) /
             Math.pow(10, quoteResponseDto.toToken.decimals);
+          const toTokenValue = toTokenAmount * stableTokenCurrentPrice;
           const actualSlippage =
-            ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount;
+            ((currentPortfolioValue - toTokenValue) * 100) /
+            currentPortfolioValue;
 
           if (
-            currentPrice >= sellLimitPrice ||
-            stopLimitPrice >= currentPrice
+            targetTokenCurrentPrice >= sellLimitPrice ||
+            stopLimitPrice >= targetTokenCurrentPrice
           ) {
             if (actualSlippage <= Args.slippagePercent) {
               console.log(
-                `SELL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                `SELL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
-                }%, Potential Return: ${minToTokenAmount} ${
+                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
                   quoteResponseDto.toToken.symbol
                 })`
               );
@@ -228,18 +235,18 @@ import { Wait } from "./utils/wait";
               }
             } else {
               console.log(
-                `HODL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
-                }%, Potential Return: ${minToTokenAmount} ${
+                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
                   quoteResponseDto.toToken.symbol
                 })`
               );
             }
           } else {
             console.log(
-              `HODL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Potential Return: ${minToTokenAmount} ${quoteResponseDto.toToken.symbol})`
+              `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
             );
           }
         } else {
