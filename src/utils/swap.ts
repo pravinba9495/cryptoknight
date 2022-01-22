@@ -1,6 +1,5 @@
 import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
-import { Wait } from "./wait";
 
 /**
  * Swap method initates the swap token process on the router
