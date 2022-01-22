@@ -23,6 +23,7 @@ import { Wait } from "./utils/wait";
 
     while (true) {
       try {
+        console.log(`\n\n${new Date()}\n`);
         const routerAddress = await router.GetContractAddress();
         console.log(`Wallet Address: ${wallet.Address}`);
         console.log(`Chain ID: ${wallet.ChainID}`);
@@ -81,32 +82,34 @@ import { Wait } from "./utils/wait";
               )
             ) || 0;
 
-          if (buyLimitPrice >= currentPrice) {
-            const params = {
-              fromTokenAddress: stableTokenContractAddress,
-              toTokenAddress: targetTokenContractAddress,
-              amount: stableTokenBalance.toString(),
-            };
-            const quoteResponseDto = await router.GetQuote(params);
-            const maxToTokenAmount =
-              Number(
-                stableTokenBalance /
-                  BigInt(Math.pow(10, quoteResponseDto.fromToken.decimals))
-              ) / currentPrice;
-            const minToTokenAmount = Number(
-              BigInt(quoteResponseDto.toTokenAmount) /
-                BigInt(Math.pow(10, quoteResponseDto.toToken.decimals))
-            );
-            const actualSlippage =
-              ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount;
+          const params = {
+            fromTokenAddress: stableTokenContractAddress,
+            toTokenAddress: targetTokenContractAddress,
+            amount: stableTokenBalance.toString(),
+          };
+          const quoteResponseDto = await router.GetQuote(params);
+          const maxToTokenAmount =
+            Number(
+              stableTokenBalance /
+                BigInt(Math.pow(10, quoteResponseDto.fromToken.decimals))
+            ) / currentPrice;
+          const minToTokenAmount = Number(
+            BigInt(quoteResponseDto.toTokenAmount) /
+              BigInt(Math.pow(10, quoteResponseDto.toToken.decimals))
+          );
+          const actualSlippage =
+            ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount;
 
+          if (buyLimitPrice >= currentPrice) {
             if (actualSlippage <= Args.slippagePercent) {
               console.log(
-                `BUY ${minToTokenAmount} ${
-                  quoteResponseDto.toToken.symbol
-                } (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                `BUY (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
-                )}%, Slippage Allowed: +${Args.slippagePercent}%)`
+                )}%, Slippage Allowed: +${
+                  Args.slippagePercent
+                }%), Potential Return: ${minToTokenAmount} ${
+                  quoteResponseDto.toToken.symbol
+                }`
               );
               try {
                 await PrepareForSwap(
@@ -140,7 +143,7 @@ import { Wait } from "./utils/wait";
             }
           } else {
             console.log(
-              `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%)`
+              `HODL (Current Price: $${currentPrice}, Buy Limit: $${buyLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%), Potential Return: ${minToTokenAmount} ${quoteResponseDto.toToken.symbol}`
             );
           }
         } else if (currentStatus === "WAITING_TO_SELL") {
@@ -160,32 +163,36 @@ import { Wait } from "./utils/wait";
               )
             ) || 9999999999;
 
+          const params = {
+            fromTokenAddress: targetTokenContractAddress,
+            toTokenAddress: stableTokenContractAddress,
+            amount: targetTokenBalance.toString(),
+          };
+          const quoteResponseDto = await router.GetQuote(params);
+          const maxToTokenAmount =
+            Number(
+              targetTokenBalance /
+                BigInt(Math.pow(10, quoteResponseDto.fromToken.decimals))
+            ) * currentPrice;
+          const minToTokenAmount =
+            quoteResponseDto.toTokenAmount /
+            Math.pow(10, quoteResponseDto.toToken.decimals);
+          const actualSlippage =
+            ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount;
+
           if (
             currentPrice >= sellLimitPrice ||
             stopLimitPrice >= currentPrice
           ) {
-            const params = {
-              fromTokenAddress: targetTokenContractAddress,
-              toTokenAddress: stableTokenContractAddress,
-              amount: targetTokenBalance.toString(),
-            };
-            const quoteResponseDto = await router.GetQuote(params);
-            const maxToTokenAmount =
-              Number(
-                targetTokenBalance /
-                  BigInt(Math.pow(10, quoteResponseDto.fromToken.decimals))
-              ) * currentPrice;
-            const minToTokenAmount =
-              quoteResponseDto.toTokenAmount /
-              Math.pow(10, quoteResponseDto.toToken.decimals);
-            const actualSlippage =
-              ((maxToTokenAmount - minToTokenAmount) * 100) / maxToTokenAmount;
-
             if (actualSlippage <= Args.slippagePercent) {
               console.log(
                 `SELL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
-                )}%, Slippage Allowed: +${Args.slippagePercent}%)`
+                )}%, Slippage Allowed: +${
+                  Args.slippagePercent
+                }%), Potential Return: ${minToTokenAmount} ${
+                  quoteResponseDto.toToken.symbol
+                }`
               );
               try {
                 await PrepareForSwap(
@@ -219,7 +226,11 @@ import { Wait } from "./utils/wait";
               console.log(
                 `HODL (Current Price: $${currentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
-                )}%, Slippage Allowed: +${Args.slippagePercent}%)`
+                )}%, Slippage Allowed: +${
+                  Args.slippagePercent
+                }%), Potential Return: ${minToTokenAmount} ${
+                  quoteResponseDto.toToken.symbol
+                }`
               );
             }
           } else {

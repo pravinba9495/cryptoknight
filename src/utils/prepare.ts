@@ -24,7 +24,7 @@ export const PrepareForSwap = async (
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     try {
-      while(true){
+      while (true) {
         const fromTokenAllowance = await router.GetApprovedAllowance(
           fromTokenContractAddress,
           Args.publicKey
@@ -41,7 +41,7 @@ export const PrepareForSwap = async (
             slippage: Args.slippagePercent,
             disableEstimate: false,
             allowPartialFill: false,
-            gasLimit: 11500000
+            gasLimit: 11500000,
           };
           await Swap(wallet, router, params);
           while (true) {

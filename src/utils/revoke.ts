@@ -30,13 +30,13 @@ export const Revoke = async (
     signedRevokedTxWithGasRaw
   );
   console.log(`Token Access Revoke Transaction has been sent: ${revokeTxHash}`);
-  while(true) {
-    console.log('Querying transaction status')
+  while (true) {
+    console.log("Querying transaction status");
     const success = await wallet.GetTransactionReceipt(revokeTxHash);
-    if(success){
+    if (success) {
       return revokeTxHash;
     } else {
-      throw "Revoke Transaction failed"
+      throw "Revoke Transaction failed";
     }
   }
   return revokeTxHash;

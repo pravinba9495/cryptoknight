@@ -34,13 +34,13 @@ export const Approve = async (
     signedApproveTxWithGasRaw
   );
   console.log(`Token Approval Transaction has been sent: ${approveTxHash}`);
-  while(true) {
-    console.log('Querying transaction status')
+  while (true) {
+    console.log("Querying transaction status");
     const success = await wallet.GetTransactionReceipt(approveTxHash);
-    if(success){
+    if (success) {
       return approveTxHash;
     } else {
-      throw "Approve Transaction failed"
+      throw "Approve Transaction failed";
     }
   }
   return approveTxHash;

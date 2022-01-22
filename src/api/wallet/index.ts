@@ -86,10 +86,10 @@ export class Wallet {
    */
   async GetTransactionReceipt(txHash: string): Promise<boolean> {
     const web3 = new Web3(GetRpcURLByChainID(this.ChainID));
-    while(true) {
+    while (true) {
       const receipt = await web3.eth.getTransactionReceipt(txHash);
-      if(receipt != null){
-        return receipt.status
+      if (receipt != null) {
+        return receipt.status;
       } else {
         await Wait(5);
       }
