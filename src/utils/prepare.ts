@@ -24,11 +24,7 @@ export const PrepareForSwap = async (
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     try {
-      let approveDone = false;
-      let swapDone = false;
-      let revokeDone = false;
-
-      while (!swapDone || !approveDone || !revokeDone) {
+      while(true){
         const fromTokenAllowance = await router.GetApprovedAllowance(
           fromTokenContractAddress,
           Args.publicKey
@@ -45,6 +41,7 @@ export const PrepareForSwap = async (
             slippage: Args.slippagePercent,
             disableEstimate: false,
             allowPartialFill: false,
+            gasLimit: 11500000
           };
           await Swap(wallet, router, params);
           while (true) {
@@ -59,8 +56,6 @@ export const PrepareForSwap = async (
               fromTokenBalance === BigInt(0) &&
               toTokenBalance !== BigInt(0)
             ) {
-              swapDone = true;
-              await Wait(5);
               break;
             }
             await Wait(5);
@@ -73,12 +68,11 @@ export const PrepareForSwap = async (
               Args.publicKey
             );
             if (fromTokenAllowance === BigInt(0)) {
-              revokeDone = true;
-              await Wait(5);
               break;
             }
             await Wait(5);
           }
+          break;
         } else {
           await Approve(
             wallet,
@@ -93,7 +87,6 @@ export const PrepareForSwap = async (
               Args.publicKey
             );
             if (fromTokenAllowance >= fromTokenBalance) {
-              approveDone = true;
               await Wait(5);
               break;
             }

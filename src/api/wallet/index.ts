@@ -1,5 +1,6 @@
 import Web3 from "web3";
 import { GetRpcURLByChainID } from "../../networks";
+import { Wait } from "../../utils/wait";
 
 /**
  * ERC20 minimal ABI
@@ -76,5 +77,22 @@ export class Wallet {
       from: this.Address,
     });
     return gas;
+  }
+
+  /**
+   * GetTransactionReceipt gets the transaction receipt
+   * @param txHash Transaction Hash
+   * @returns Promise<boolean>
+   */
+  async GetTransactionReceipt(txHash: string): Promise<boolean> {
+    const web3 = new Web3(GetRpcURLByChainID(this.ChainID));
+    while(true) {
+      const receipt = await web3.eth.getTransactionReceipt(txHash);
+      if(receipt != null){
+        return receipt.status
+      } else {
+        await Wait(5);
+      }
+    }
   }
 }
