@@ -34,7 +34,7 @@ export class Wallet {
    * @returns Promise<bigint> Wallet balance
    */
   async GetBalance(): Promise<bigint> {
-    const web3 = new Web3(GetRpcURLByChainID(this.ChainID));
+    const web3 = new Web3(new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID)));
     const balance = await web3.eth.getBalance(this.Address);
     return BigInt(balance);
   }
@@ -45,7 +45,7 @@ export class Wallet {
    * @returns Promise<bigint> Token balance
    */
   async GetTokenBalance(tokenContractAddress: string): Promise<bigint> {
-    const web3 = new Web3(GetRpcURLByChainID(this.ChainID));
+    const web3 = new Web3(new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID)));
     const contract = new web3.eth.Contract(ERC20Abi, tokenContractAddress);
     const balance = await contract.methods.balanceOf(this.Address).call();
     return BigInt(balance);
@@ -57,7 +57,7 @@ export class Wallet {
    * @returns Promise<string> Raw transaction
    */
   async SignTransaction(transaction: any): Promise<string> {
-    const web3 = new Web3(GetRpcURLByChainID(this.ChainID));
+    const web3 = new Web3(new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID)));
     const tx: any = await web3.eth.accounts.signTransaction(
       transaction,
       this.Key
@@ -71,7 +71,7 @@ export class Wallet {
    * @returns Estimated gas amount
    */
   async EstimateGas(transaction: any): Promise<number> {
-    const web3 = new Web3(GetRpcURLByChainID(this.ChainID));
+    const web3 = new Web3(new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID)));
     const gas: number = await web3.eth.estimateGas({
       ...transaction,
       from: this.Address,
@@ -85,7 +85,7 @@ export class Wallet {
    * @returns Promise<boolean>
    */
   async GetTransactionReceipt(txHash: string): Promise<boolean> {
-    const web3 = new Web3(GetRpcURLByChainID(this.ChainID));
+    const web3 = new Web3(new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID)));
     while (true) {
       const receipt = await web3.eth.getTransactionReceipt(txHash);
       if (receipt != null) {

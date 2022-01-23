@@ -40,7 +40,7 @@ export const Approve = async (
     if (success) {
       return approveTxHash;
     } else {
-      throw "Approve Transaction failed";
+      throw new Error("Approve Transaction failed");
     }
   }
   return approveTxHash;

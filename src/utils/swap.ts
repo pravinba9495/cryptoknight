@@ -30,7 +30,7 @@ export const Swap = async (
     if (success) {
       return swapTxHash;
     } else {
-      throw "Swap Transaction failed";
+      throw new Error("Swap Transaction failed");
     }
   }
   return swapTxHash;

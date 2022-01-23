@@ -36,7 +36,7 @@ export const Revoke = async (
     if (success) {
       return revokeTxHash;
     } else {
-      throw "Revoke Transaction failed";
+      throw new Error("Revoke Transaction failed");
     }
   }
   return revokeTxHash;
