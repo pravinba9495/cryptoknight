@@ -1,5 +1,6 @@
 import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
+import { Wait } from "./wait";
 
 /**
  * Swap method initates the swap token process on the router
@@ -13,12 +14,21 @@ export const Swap = async (
   router: Router,
   params: any
 ): Promise<string> => {
-  console.log(`Initiating swapping the tokens`);
-  const swapTx = await router.GetSwapTransactionData(params);
-  const swapTxWithGas = {
-    ...swapTx,
-    gas: swapTx.gas + Math.ceil(0.25 * swapTx.gas),
-  };
+  let swapTxWithGas = {};
+  while (true) {
+    try {
+      console.log(`Initiating swapping the tokens`);
+      const swapTx = await router.GetSwapTransactionData(params);
+      swapTxWithGas = {
+        ...swapTx,
+        gas: swapTx.gas + Math.ceil(0.25 * swapTx.gas),
+      };
+      break;
+    } catch (error) {
+      console.error(error);
+      await Wait(5);
+    }
+  }
   const signedApproveTxWithGasRaw = await wallet.SignTransaction(swapTxWithGas);
   const swapTxHash = await router.BroadcastRawTransaction(
     signedApproveTxWithGasRaw
