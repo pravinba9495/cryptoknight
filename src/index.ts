@@ -98,55 +98,33 @@ import { Wait } from "./utils/wait";
           const toTokenAmount =
             Number(quoteResponseDto.toTokenAmount) /
             Math.pow(10, quoteResponseDto.toToken.decimals);
-          const toTokenValue = toTokenAmount * targetTokenCurrentPrice;
-          const actualSlippage =
-            ((currentPortfolioValue - toTokenValue) * 100) /
-            currentPortfolioValue;
 
           if (buyLimitPrice >= targetTokenCurrentPrice) {
-            if (actualSlippage <= Args.slippagePercent) {
-              console.log(
-                `BUY (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
-                  2
-                )}%, Slippage Allowed: +${
-                  Args.slippagePercent
-                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
-                  quoteResponseDto.toToken.symbol
-                })`
+            console.log(
+              `BUY (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
+            );
+            try {
+              await PrepareForSwap(
+                router,
+                wallet,
+                stableTokenContractAddress,
+                stableTokenBalance,
+                targetTokenContractAddress
               );
-              try {
-                await PrepareForSwap(
-                  router,
-                  wallet,
-                  stableTokenContractAddress,
-                  stableTokenBalance,
-                  targetTokenContractAddress
-                );
-                await redis.hSet(
-                  `${Args.stableToken}_${Args.targetToken}`,
-                  "SellLimitPrice",
-                  (Args.profitPercent / 100 + 1) * targetTokenCurrentPrice
-                );
-                await redis.hSet(
-                  `${Args.stableToken}_${Args.targetToken}`,
-                  "StopLimitPrice",
-                  (1 - Args.stopLossPercent / 100) * targetTokenCurrentPrice
-                );
-                currentStatus = "WAITING_TO_SELL";
-              } catch (error) {
-                console.error(error);
-                process.exit(1);
-              }
-            } else {
-              console.log(
-                `HODL (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
-                  2
-                )}%, Slippage Allowed: +${
-                  Args.slippagePercent
-                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
-                  quoteResponseDto.toToken.symbol
-                })`
+              await redis.hSet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "SellLimitPrice",
+                (Args.profitPercent / 100 + 1) * targetTokenCurrentPrice
               );
+              await redis.hSet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "StopLimitPrice",
+                (1 - Args.stopLossPercent / 100) * targetTokenCurrentPrice
+              );
+              currentStatus = "WAITING_TO_SELL";
+            } catch (error) {
+              console.error(error);
+              process.exit(1);
             }
           } else {
             console.log(
@@ -184,63 +162,41 @@ import { Wait } from "./utils/wait";
           const toTokenAmount =
             Number(quoteResponseDto.toTokenAmount) /
             Math.pow(10, quoteResponseDto.toToken.decimals);
-          const toTokenValue = toTokenAmount * stableTokenCurrentPrice;
-          const actualSlippage =
-            ((currentPortfolioValue - toTokenValue) * 100) /
-            currentPortfolioValue;
 
           if (
             targetTokenCurrentPrice >= sellLimitPrice ||
             stopLimitPrice >= targetTokenCurrentPrice
           ) {
-            if (actualSlippage <= Args.slippagePercent) {
-              console.log(
-                `SELL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
-                  2
-                )}%, Slippage Allowed: +${
-                  Args.slippagePercent
-                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
-                  quoteResponseDto.toToken.symbol
-                })`
+            console.log(
+              `SELL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
+            );
+            try {
+              await PrepareForSwap(
+                router,
+                wallet,
+                targetTokenContractAddress,
+                targetTokenBalance,
+                stableTokenContractAddress
               );
-              try {
-                await PrepareForSwap(
-                  router,
-                  wallet,
-                  targetTokenContractAddress,
-                  targetTokenBalance,
-                  stableTokenContractAddress
-                );
-                await redis.hSet(
-                  `${Args.stableToken}_${Args.targetToken}`,
-                  "BuyLimitPrice",
-                  0
-                );
-                await redis.hSet(
-                  `${Args.stableToken}_${Args.targetToken}`,
-                  "StopLimitPrice",
-                  0
-                );
-                await redis.hSet(
-                  `${Args.stableToken}_${Args.targetToken}`,
-                  "SellLimitPrice",
-                  9999999999
-                );
-                currentStatus = "WAITING_TO_BUY";
-              } catch (error) {
-                console.error(error);
-                process.exit(1);
-              }
-            } else {
-              console.log(
-                `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
-                  2
-                )}%, Slippage Allowed: +${
-                  Args.slippagePercent
-                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
-                  quoteResponseDto.toToken.symbol
-                })`
+              await redis.hSet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "BuyLimitPrice",
+                0
               );
+              await redis.hSet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "StopLimitPrice",
+                0
+              );
+              await redis.hSet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "SellLimitPrice",
+                9999999999
+              );
+              currentStatus = "WAITING_TO_BUY";
+            } catch (error) {
+              console.error(error);
+              process.exit(1);
             }
           } else {
             console.log(
