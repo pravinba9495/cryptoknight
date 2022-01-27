@@ -6,7 +6,7 @@ import Axios from "axios";
 export class Kraken {
   /**
    * GetCoinPrice returns the coin price in USD
-   * @param coinID Coin id from the coins list
+   * @param pair Ticker symbol in Kraken
    * @returns Promise<AxiosResponse<any, any>>
    */
   static GetCoinPrice = async (pair: string): Promise<number> => {
