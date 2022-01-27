@@ -79,7 +79,7 @@ The following command line parameters are supported.
 <td>chainId</td>
 <td>Chain to use. Allowed options: 1 (Ethereum), 10 (Optimism), 56 (Binance Smart Chain), 137 (Polygon/Matic), 42161 (Arbitrum)</td>
 <td>integer</td>
-<td>1</td>
+<td>137</td>
 </tr>
 
 <tr>
