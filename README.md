@@ -97,6 +97,20 @@ The following command line parameters are supported.
 </tr>
 
 <tr>
+<td>stableTokenTickerKraken</td>
+<td>Ticker symbol of the stable token in Kraken. Example: USDCUSD, DAIUSD, USDTUSD.</td>
+<td>string</td>
+<td>USDCUSD</td>
+</tr>
+
+<tr>
+<td>targetTokenTickerKraken</td>
+<td>Ticker symbol of the target token in Kraken. Example: ETHUSD, BTCUSD, MATICUSD.</td>
+<td>string</td>
+<td>MATICUSD</td>
+</tr>
+
+<tr>
 <td>slippagePercent</td>
 <td>Slippage tolerance during swap. Example: 1, 2, ..50</td>
 <td>integer</td>
@@ -165,6 +179,8 @@ docker run -d --name kryptonite pravinba9495/kryptonite:latest kryptonite \
                 --chainId=<CHAIN_ID> \
                 --stableToken=<STABLE_TOKEN> \
                 --targetToken=<TARGET_TOKEN> \
+                --stableTokenTickerKraken=<STABLE_TOKEN_TICKER_KRAKEN> \
+                --targetTokenTickerKraken=<TARGET_TOKEN_TICKER_KRAKEN> \
                 --slippagePercent=<SLIPPAGE_PERCENT> \
                 --redisAddress=<REDIS_ADDRESS> \
                 --botToken=<BOT_TOKEN> \
