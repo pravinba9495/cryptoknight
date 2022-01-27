@@ -10,6 +10,16 @@ export const Args: any = yargs(process.argv.slice(2)).options({
   chatId: { type: "string", demandOption: false },
   stableToken: { type: "string", default: "USDC", demandOption: true },
   targetToken: { type: "string", default: "WMATIC", demandOption: true },
+  stableTokenTickerKraken: {
+    type: "string",
+    default: "USDCUSD",
+    demandOption: true,
+  },
+  targetTokenTickerKraken: {
+    type: "string",
+    default: "MATICUSD",
+    demandOption: true,
+  },
   botToken: { type: "string", demandOption: true },
   password: { type: "string", default: "kryptonite", demandOption: true },
   redisAddress: { type: "string", demandOption: true },

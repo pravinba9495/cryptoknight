@@ -1,4 +1,4 @@
-import { CoinGecko } from "./api/coingecko";
+import { Kraken } from "./api/kraken";
 import { Router } from "./api/oneinch";
 import { Wallet } from "./api/wallet";
 import { Connect } from "./redis";
@@ -67,13 +67,11 @@ import { Wait } from "./utils/wait";
 
         console.log(`Current Status: ${currentStatus}`);
 
-        const stableCoinID = await CoinGecko.GetCoinID(Args.stableToken);
-        const targetCoinID = await CoinGecko.GetCoinID(Args.targetToken);
-        const stableTokenCurrentPrice = await CoinGecko.GetCoinPrice(
-          stableCoinID
+        const stableTokenCurrentPrice = await Kraken.GetCoinPrice(
+          Args.stableTokenTickerKraken
         );
-        const targetTokenCurrentPrice = await CoinGecko.GetCoinPrice(
-          targetCoinID
+        const targetTokenCurrentPrice = await Kraken.GetCoinPrice(
+          Args.targetTokenTickerKraken
         );
 
         if (currentStatus === "WAITING_TO_BUY") {
@@ -253,7 +251,7 @@ import { Wait } from "./utils/wait";
       } catch (error) {
         console.error(error);
       }
-      await Wait(60);
+      await Wait(30);
     }
     await redis.disconnect();
   } catch (error) {
