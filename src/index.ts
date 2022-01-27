@@ -44,7 +44,6 @@ import { Wait } from "./utils/wait";
         console.log(
           `Target Token Contract Address (${Args.targetToken}): ${targetTokenContractAddress}`
         );
-
         const stableTokenBalance = await wallet.GetTokenBalance(
           stableTokenContractAddress
         );
@@ -64,8 +63,6 @@ import { Wait } from "./utils/wait";
         ) {
           currentStatus = "WAITING_TO_SELL";
         }
-
-        console.log(`Current Status: ${currentStatus}`);
 
         const stableTokenCurrentPrice = await Kraken.GetCoinPrice(
           Args.stableTokenTickerKraken
@@ -100,6 +97,20 @@ import { Wait } from "./utils/wait";
           const actualSlippage =
             ((currentPortfolioValue - toTokenValue) * 100) /
             currentPortfolioValue;
+
+          console.log(
+            `Stable Token Balance (${Args.stableToken}): ${
+              Number(stableTokenBalance) /
+              Math.pow(10, quoteResponseDto.fromToken.decimals)
+            } ${Args.stableToken}`
+          );
+          console.log(
+            `Target Token Balance (${Args.targetToken}): ${
+              Number(targetTokenBalance) /
+              Math.pow(10, quoteResponseDto.toToken.decimals)
+            } ${Args.targetToken}`
+          );
+          console.log(`Current Status: ${currentStatus}`);
 
           if (buyLimitPrice >= targetTokenCurrentPrice) {
             if (actualSlippage <= Args.slippagePercent) {
@@ -186,6 +197,20 @@ import { Wait } from "./utils/wait";
           const actualSlippage =
             ((currentPortfolioValue - toTokenValue) * 100) /
             currentPortfolioValue;
+
+          console.log(
+            `Stable Token Balance (${Args.stableToken}): ${
+              Number(stableTokenBalance) /
+              Math.pow(10, quoteResponseDto.toToken.decimals)
+            } ${Args.stableToken}`
+          );
+          console.log(
+            `Target Token Balance (${Args.targetToken}): ${
+              Number(targetTokenBalance) /
+              Math.pow(10, quoteResponseDto.fromToken.decimals)
+            } ${Args.targetToken}`
+          );
+          console.log(`Current Status: ${currentStatus}`);
 
           if (
             targetTokenCurrentPrice >= sellLimitPrice ||
