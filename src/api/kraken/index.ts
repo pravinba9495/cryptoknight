@@ -20,7 +20,7 @@ export class Kraken {
         if (response.error.length > 0) {
           return Promise.reject(response.error[0]);
         }
-        return Number(response["result"][pair.toUpperCase()]["a"][0]);
+        return Number(response["result"][pair.toUpperCase()]["c"][0]);
       })
       .catch((error) => {
         if (error.response) {
