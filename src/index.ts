@@ -141,6 +141,11 @@ import { Wait } from "./utils/wait";
                   "StopLimitPrice",
                   (1 - Args.stopLossPercent / 100) * targetTokenCurrentPrice
                 );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "LastBuyPrice",
+                  targetTokenCurrentPrice
+                );
                 currentStatus = "WAITING_TO_SELL";
               } catch (error) {
                 console.error(error);
@@ -163,6 +168,13 @@ import { Wait } from "./utils/wait";
             );
           }
         } else if (currentStatus === "WAITING_TO_SELL") {
+          const lastBuyPrice =
+            Number(
+              await redis.hGet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "LastBuyPrice"
+              )
+            ) || targetTokenCurrentPrice;
           const stopLimitPrice =
             Number(
               await redis.hGet(
@@ -197,6 +209,8 @@ import { Wait } from "./utils/wait";
           const actualSlippage =
             ((currentPortfolioValue - toTokenValue) * 100) /
             currentPortfolioValue;
+          const profitOrLossPercent =
+            ((targetTokenCurrentPrice - lastBuyPrice) * 100) / lastBuyPrice;
 
           console.log(
             `Stable Token Balance (${Args.stableToken}): ${
@@ -224,7 +238,9 @@ import { Wait } from "./utils/wait";
                   Args.slippagePercent
                 }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
                   quoteResponseDto.toToken.symbol
-                })`
+                }, ${profitOrLossPercent > 0 ? "Profit" : "Loss"}: ${
+                  profitOrLossPercent > 0 ? "+" : ""
+                }${profitOrLossPercent})`
               );
               try {
                 await PrepareForSwap(
@@ -262,12 +278,20 @@ import { Wait } from "./utils/wait";
                   Args.slippagePercent
                 }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
                   quoteResponseDto.toToken.symbol
-                })`
+                }, ${profitOrLossPercent > 0 ? "Profit" : "Loss"}: ${
+                  profitOrLossPercent > 0 ? "+" : ""
+                }${profitOrLossPercent})`
               );
             }
           } else {
             console.log(
-              `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
+              `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${
+                Args.slippagePercent
+              }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
+                quoteResponseDto.toToken.symbol
+              }, ${profitOrLossPercent > 0 ? "Profit" : "Loss"}: ${
+                profitOrLossPercent > 0 ? "+" : ""
+              }${profitOrLossPercent})`
             );
           }
         } else {
