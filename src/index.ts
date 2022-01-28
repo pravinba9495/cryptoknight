@@ -29,7 +29,7 @@ import { Wait } from "./utils/wait";
       stableTokenContractAddress === "" ||
       targetTokenContractAddress === ""
     ) {
-      throw new Error("tokenContractAddress cannot be empty");
+      return Promise.reject("tokenContractAddress cannot be empty");
     }
 
     while (true) {
