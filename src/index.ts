@@ -91,8 +91,9 @@ import { Wait } from "./utils/wait";
               Math.pow(10, quoteResponseDto.fromToken.decimals)) *
             stableTokenCurrentPrice;
           const toTokenAmount =
-            Number(quoteResponseDto.toTokenAmount) /
-            Math.pow(10, quoteResponseDto.toToken.decimals);
+            (1 - Args.slippagePercent / 100) *
+            (Number(quoteResponseDto.toTokenAmount) /
+              Math.pow(10, quoteResponseDto.toToken.decimals));
           const toTokenValue = toTokenAmount * targetTokenCurrentPrice;
           const actualSlippage =
             ((currentPortfolioValue - toTokenValue) * 100) /
@@ -203,8 +204,9 @@ import { Wait } from "./utils/wait";
               Math.pow(10, quoteResponseDto.fromToken.decimals)) *
             targetTokenCurrentPrice;
           const toTokenAmount =
-            Number(quoteResponseDto.toTokenAmount) /
-            Math.pow(10, quoteResponseDto.toToken.decimals);
+            (1 - Args.slippagePercent / 100) *
+            (Number(quoteResponseDto.toTokenAmount) /
+              Math.pow(10, quoteResponseDto.toToken.decimals));
           const toTokenValue = toTokenAmount * stableTokenCurrentPrice;
           const actualSlippage =
             ((currentPortfolioValue - toTokenValue) * 100) /
