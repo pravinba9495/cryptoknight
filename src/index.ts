@@ -212,7 +212,7 @@ import { Wait } from "./utils/wait";
             ((currentPortfolioValue - toTokenValue) * 100) /
             currentPortfolioValue;
           const profitOrLossPercent =
-            ((targetTokenCurrentPrice - lastBuyPrice) * 100) / lastBuyPrice;
+            Number((((targetTokenCurrentPrice - lastBuyPrice) * 100) / lastBuyPrice).toFixed(2));
 
           console.log(
             `Stable Token Balance (${Args.stableToken}): ${
