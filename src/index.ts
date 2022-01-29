@@ -242,7 +242,7 @@ import { Wait } from "./utils/wait";
                   quoteResponseDto.toToken.symbol
                 }, ${profitOrLossPercent > 0 ? "Profit" : "Loss"}: ${
                   profitOrLossPercent > 0 ? "+" : ""
-                }${profitOrLossPercent})`
+                }${profitOrLossPercent}%)`
               );
               try {
                 await PrepareForSwap(
@@ -282,7 +282,7 @@ import { Wait } from "./utils/wait";
                   quoteResponseDto.toToken.symbol
                 }, ${profitOrLossPercent > 0 ? "Profit" : "Loss"}: ${
                   profitOrLossPercent > 0 ? "+" : ""
-                }${profitOrLossPercent})`
+                }${profitOrLossPercent}%)`
               );
             }
           } else {
@@ -293,7 +293,7 @@ import { Wait } from "./utils/wait";
                 quoteResponseDto.toToken.symbol
               }, ${profitOrLossPercent > 0 ? "Profit" : "Loss"}: ${
                 profitOrLossPercent > 0 ? "+" : ""
-              }${profitOrLossPercent})`
+              }${profitOrLossPercent}%)`
             );
           }
         } else {
