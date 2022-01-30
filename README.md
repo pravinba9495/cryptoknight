@@ -191,11 +191,13 @@ docker run -d --name kryptonite pravinba9495/kryptonite:latest kryptonite \
                 --mode=<MODE_OF_OPERATION>
 ```
 
-# Instructions
+## Instructions
 
-# Examples
+## Examples
 
-## Swap
+### Log
+![Swap Example](https://raw.githubusercontent.com/pravinba9495/kryptonite/master/assets/log_example.png)
+### Swap
 ![Swap Example](https://raw.githubusercontent.com/pravinba9495/kryptonite/master/assets/swap_example.png)
 
 ## Disclaimer
