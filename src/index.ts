@@ -189,6 +189,11 @@ import { Wait } from "./utils/wait";
 
           if (suggestedStopLimitPrice > stopLimitPrice) {
             stopLimitPrice = suggestedStopLimitPrice;
+            await redis.hSet(
+              `${Args.stableToken}_${Args.targetToken}`,
+              "StopLimitPrice",
+              stopLimitPrice
+            );
           }
 
           const sellLimitPrice =
