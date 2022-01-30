@@ -176,13 +176,20 @@ import { Wait } from "./utils/wait";
                 "LastBuyPrice"
               )
             ) || targetTokenCurrentPrice;
-          const stopLimitPrice =
+          let stopLimitPrice =
             Number(
               await redis.hGet(
                 `${Args.stableToken}_${Args.targetToken}`,
                 "StopLimitPrice"
               )
             ) || 0;
+
+          const suggestedStopLimitPrice =
+            (1 - Args.stopLossPercent / 100) * targetTokenCurrentPrice;
+
+          if (suggestedStopLimitPrice > stopLimitPrice) {
+            stopLimitPrice = suggestedStopLimitPrice;
+          }
 
           const sellLimitPrice =
             Number(
