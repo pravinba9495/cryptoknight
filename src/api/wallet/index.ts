@@ -26,13 +26,16 @@ export class Wallet {
 
   constructor(address: string, key: string, chainId: number) {
     this.Address = address;
-    this.MaskedAddress = address.split("").map((c, idx) => {
-      if(idx < 5 || idx > address.length - 6) {
-        return c
-      } else {
-        return "*"
-      }
-    }).join("");
+    this.MaskedAddress = address
+      .split("")
+      .map((c, idx) => {
+        if (idx < 5 || idx > address.length - 6) {
+          return c;
+        } else {
+          return "*";
+        }
+      })
+      .join("");
     this.Key = key;
     this.ChainID = chainId;
   }
