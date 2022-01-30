@@ -35,7 +35,7 @@ import { Wait } from "./utils/wait";
     while (true) {
       try {
         console.log(`\n\n${new Date()}\n`);
-        console.log(`Wallet Address: ${wallet.Address}`);
+        console.log(`Wallet Address: ${wallet.MaskedAddress}`);
         console.log(`Chain ID: ${wallet.ChainID}`);
         console.log(`Router Contract Address: ${routerAddress}`);
         console.log(
