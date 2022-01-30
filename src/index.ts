@@ -242,13 +242,14 @@ import { Wait } from "./utils/wait";
               Math.pow(10, quoteResponseDto.fromToken.decimals)
             } ${Args.targetToken}`
           );
+
           console.log(`Current Status: ${currentStatus}`);
 
-          if (
-            targetTokenCurrentPrice >= sellLimitPrice ||
-            stopLimitPrice >= targetTokenCurrentPrice
-          ) {
-            if (actualSlippage <= Args.slippagePercent) {
+          const sellLimitReached = targetTokenCurrentPrice >= sellLimitPrice;
+          const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
+
+          if (sellLimitReached || stopLimitReached) {
+            if (actualSlippage <= Args.slippagePercent || stopLimitReached) {
               console.log(
                 `SELL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
