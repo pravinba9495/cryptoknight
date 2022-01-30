@@ -20,11 +20,19 @@ const ERC20Abi: any = [
  */
 export class Wallet {
   Address: string;
+  MaskedAddress: string;
   Key: string;
   ChainID: number;
 
   constructor(address: string, key: string, chainId: number) {
     this.Address = address;
+    this.MaskedAddress = address.split("").map((c, idx) => {
+      if(idx < 5 || idx > address.length - 6) {
+        return c
+      } else {
+        return "*"
+      }
+    }).join("");
     this.Key = key;
     this.ChainID = chainId;
   }
