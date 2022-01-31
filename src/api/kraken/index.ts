@@ -14,6 +14,7 @@ export class Kraken {
       params: {
         pair,
       },
+      timeout: 5000,
     })
       .then((response) => response.data)
       .then((response: any) => {
