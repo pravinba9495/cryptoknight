@@ -19,6 +19,7 @@ export class Router {
   async GetSwapTransactionData(params: any): Promise<any> {
     return Axios.get<any>(`https://api.1inch.io/v4.0/${this.ChainID}/swap`, {
       params,
+      timeout: 5000,
     })
       .then((response) => response.data)
       .then((response) => response.tx as any)
@@ -26,7 +27,7 @@ export class Router {
         if (error.response) {
           return Promise.reject(error.response.data);
         } else {
-          return Promise.reject(error.request);
+          return Promise.reject(new Error("Request failed"));
         }
       });
   }
@@ -39,13 +40,14 @@ export class Router {
   async GetQuote(params: any): Promise<any> {
     return Axios.get<any>(`https://api.1inch.io/v4.0/${this.ChainID}/quote`, {
       params,
+      timeout: 5000,
     })
       .then((response) => response.data)
       .catch((error) => {
         if (error.response) {
           return Promise.reject(error.response.data);
         } else {
-          return Promise.reject(error.request);
+          return Promise.reject(new Error("Request failed"));
         }
       });
   }
@@ -65,7 +67,7 @@ export class Router {
         if (error.response) {
           return Promise.reject(error.response.data);
         } else {
-          return Promise.reject(error.request);
+          return Promise.reject(new Error("Request failed"));
         }
       });
   }
@@ -84,7 +86,7 @@ export class Router {
         if (error.response) {
           return Promise.reject(error.response.data);
         } else {
-          return Promise.reject(error.request);
+          return Promise.reject(new Error("Request failed"));
         }
       });
   }
@@ -109,7 +111,7 @@ export class Router {
         if (error.response) {
           return Promise.reject(error.response.data);
         } else {
-          return Promise.reject(error.request);
+          return Promise.reject(new Error("Request failed"));
         }
       });
   }
@@ -131,6 +133,7 @@ export class Router {
           tokenAddress,
           walletAddress,
         },
+        timeout: 5000,
       }
     )
       .then((response) => response.data)
@@ -139,7 +142,7 @@ export class Router {
         if (error.response) {
           return Promise.reject(error.response.data);
         } else {
-          return Promise.reject(error.request);
+          return Promise.reject(new Error("Request failed"));
         }
       });
   }
@@ -161,6 +164,7 @@ export class Router {
           tokenAddress,
           amount,
         },
+        timeout: 5000,
       }
     )
       .then((response) => response.data as any)
@@ -168,7 +172,7 @@ export class Router {
         if (error.response) {
           return Promise.reject(error.response.data);
         } else {
-          return Promise.reject(error.request);
+          return Promise.reject(new Error("Request failed"));
         }
       });
   }
@@ -183,6 +187,7 @@ export class Router {
       `https://tx-gateway.1inch.io/v1.1/${this.ChainID}/broadcast`,
       {
         rawTransaction,
+        timeout: 5000,
       }
     )
       .then((response) => response.data)
@@ -191,7 +196,7 @@ export class Router {
         if (error.response) {
           return Promise.reject(error.response.data);
         } else {
-          return Promise.reject(error.request);
+          return Promise.reject(new Error("Request failed"));
         }
       });
   }

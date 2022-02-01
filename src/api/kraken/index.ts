@@ -27,7 +27,7 @@ export class Kraken {
         if (error.response) {
           return Promise.reject(error.response.data);
         } else {
-          return Promise.reject(error.request);
+          return Promise.reject(new Error("Request failed"));
         }
       });
   };
