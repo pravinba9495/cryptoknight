@@ -233,12 +233,13 @@ process.on('unhandledRejection', (error) => {
           const actualSlippage =
             ((currentPortfolioValue - toTokenValue) * 100) /
             currentPortfolioValue;
-          const profitOrLossPercent = Number(
-            (
-              ((targetTokenCurrentPrice - lastBuyPrice) * 100) /
-              lastBuyPrice
-            ).toFixed(2)
-          );
+          const profitOrLossPercent =
+            Number(
+              (
+                ((targetTokenCurrentPrice - lastBuyPrice) * 100) /
+                lastBuyPrice
+              ).toFixed(2)
+            ) - actualSlippage;
 
           console.log(
             `Stable Token Balance (${Args.stableToken}): ${
