@@ -6,6 +6,16 @@ import { Args } from "./utils/flags";
 import { PrepareForSwap } from "./utils/prepare";
 import { Wait } from "./utils/wait";
 
+process.on('uncaughtException', (error) => {
+  console.error(error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (error) => {
+  console.error(error);
+  process.exit(1);
+});
+
 (async () => {
   try {
     // Connect to redis
