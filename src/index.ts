@@ -256,7 +256,9 @@ process.on('unhandledRejection', (error) => {
 
           console.log(`Current Status: ${currentStatus}`);
 
-          const sellLimitReached = targetTokenCurrentPrice >= sellLimitPrice;
+          const sellLimitReached =
+            targetTokenCurrentPrice >= sellLimitPrice &&
+            profitOrLossPercent >= Args.profitPercent;
           const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
           if (sellLimitReached || stopLimitReached) {
