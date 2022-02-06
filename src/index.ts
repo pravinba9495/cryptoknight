@@ -124,7 +124,8 @@ process.on("unhandledRejection", (error) => {
           console.log(`Current Status: ${currentStatus}`);
 
           if (buyLimitPrice >= targetTokenCurrentPrice) {
-            if (actualSlippage <= Args.slippagePercent) {
+            // Liquidity provider fee: 0.5% approx
+            if (actualSlippage <= Args.slippagePercent + 0.5) {
               console.log(
                 `BUY (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
@@ -262,7 +263,11 @@ process.on("unhandledRejection", (error) => {
           const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
           if (sellLimitReached || stopLimitReached) {
-            if (actualSlippage <= Args.slippagePercent || stopLimitReached) {
+            // Liquidity provider fee: 0.5% approx
+            if (
+              actualSlippage <= Args.slippagePercent + 0.5 ||
+              stopLimitReached
+            ) {
               console.log(
                 `SELL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
