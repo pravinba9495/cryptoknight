@@ -56,6 +56,7 @@ export const PrepareForSwap = async (
               fromTokenBalance === BigInt(0) &&
               toTokenBalance !== BigInt(0)
             ) {
+              console.log("Token swap successful");
               break;
             }
             await Wait(5);
@@ -68,6 +69,7 @@ export const PrepareForSwap = async (
               Args.publicKey
             );
             if (fromTokenAllowance === BigInt(0)) {
+              console.log("Router approval is revoked successfully");
               break;
             }
             await Wait(5);
@@ -87,7 +89,9 @@ export const PrepareForSwap = async (
               Args.publicKey
             );
             if (fromTokenAllowance >= fromTokenBalance) {
-              await Wait(5);
+              console.log(
+                `Router is now approved to spend the required tokens`
+              );
               break;
             }
             await Wait(5);
