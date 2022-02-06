@@ -18,19 +18,14 @@ process.on("unhandledRejection", (error) => {
 
 (async () => {
   try {
-    // Connect to redis
     const redis = await Connect(Args.redisAddress);
-
-    // initialize wallet
     const wallet = new Wallet(Args.publicKey, Args.privateKey, Args.chainId);
-
-    // Initialize router
     const router = new Router(Args.chainId);
-
     let currentStatus = "UNKNOWN";
 
     const routerAddress = await router.GetContractAddress();
     const tokens = await router.GetSupportedTokens();
+
     const stableTokenContractAddress =
       tokens.find((token) => token.symbol === Args.stableToken)?.address || "";
     const targetTokenContractAddress =
