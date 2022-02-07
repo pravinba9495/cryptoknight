@@ -18,19 +18,14 @@ process.on("unhandledRejection", (error) => {
 
 (async () => {
   try {
-    // Connect to redis
     const redis = await Connect(Args.redisAddress);
-
-    // initialize wallet
     const wallet = new Wallet(Args.publicKey, Args.privateKey, Args.chainId);
-
-    // Initialize router
     const router = new Router(Args.chainId);
-
     let currentStatus = "UNKNOWN";
 
     const routerAddress = await router.GetContractAddress();
     const tokens = await router.GetSupportedTokens();
+
     const stableTokenContractAddress =
       tokens.find((token) => token.symbol === Args.stableToken)?.address || "";
     const targetTokenContractAddress =
@@ -124,7 +119,8 @@ process.on("unhandledRejection", (error) => {
           console.log(`Current Status: ${currentStatus}`);
 
           if (buyLimitPrice >= targetTokenCurrentPrice) {
-            if (actualSlippage <= Args.slippagePercent) {
+            // Liquidity provider fee: 0.5% approx
+            if (actualSlippage <= Args.slippagePercent + 0.5) {
               console.log(
                 `BUY (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
@@ -262,7 +258,11 @@ process.on("unhandledRejection", (error) => {
           const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
           if (sellLimitReached || stopLimitReached) {
-            if (actualSlippage <= Args.slippagePercent || stopLimitReached) {
+            // Liquidity provider fee: 0.5% approx
+            if (
+              actualSlippage <= Args.slippagePercent + 0.5 ||
+              stopLimitReached
+            ) {
               console.log(
                 `SELL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
