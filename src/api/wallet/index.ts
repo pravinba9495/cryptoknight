@@ -1,5 +1,6 @@
 import Web3 from "web3";
 import { GetRpcURLByChainID } from "../../networks";
+import { timeout } from "../../utils/timeout";
 import { Wait } from "../../utils/wait";
 
 /**
@@ -58,12 +59,16 @@ export class Wallet {
    * @returns Promise<bigint> Token balance
    */
   async GetTokenBalance(tokenContractAddress: string): Promise<bigint> {
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
-    );
-    const contract = new web3.eth.Contract(ERC20Abi, tokenContractAddress);
-    const balance = await contract.methods.balanceOf(this.Address).call();
-    return BigInt(balance);
+    const fn = async () => {
+      const web3 = new Web3(
+        new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
+      );
+      const contract = new web3.eth.Contract(ERC20Abi, tokenContractAddress);
+      const balance = await contract.methods.balanceOf(this.Address).call();
+      return BigInt(balance);
+    }
+    const balance = await timeout(fn(), 5000);
+    return balance;
   }
 
   /**
