@@ -361,7 +361,7 @@ process.on("unhandledRejection", (error) => {
       } catch (error) {
         console.error(error);
       }
-      await Wait(30);
+      await Wait(10);
     }
     await redis.disconnect();
   } catch (error) {
