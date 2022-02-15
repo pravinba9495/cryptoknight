@@ -91,24 +91,22 @@ process.on("unhandledRejection", (error) => {
             amount: stableTokenBalance.toString(),
           };
           const quoteResponseDto = await router.GetQuote(params);
+          const stableTokenAmnt =
+            Number(stableTokenBalance) /
+            Math.pow(10, quoteResponseDto.fromToken.decimals);
           const currentPortfolioValue =
-            (Number(stableTokenBalance) /
-              Math.pow(10, quoteResponseDto.fromToken.decimals)) *
-            stableTokenCurrentPrice;
-          const toTokenAmount =
-            (1 - Args.slippagePercent / 100) *
-            (Number(quoteResponseDto.toTokenAmount) /
-              Math.pow(10, quoteResponseDto.toToken.decimals));
+            stableTokenAmnt * stableTokenCurrentPrice;
+          const toTokenAmnt =
+            Number(quoteResponseDto.toTokenAmount) /
+            Math.pow(10, quoteResponseDto.toToken.decimals);
+          const toTokenAmount = (1 - Args.slippagePercent / 100) * toTokenAmnt;
           const toTokenValue = toTokenAmount * targetTokenCurrentPrice;
           const actualSlippage =
             ((currentPortfolioValue - toTokenValue) * 100) /
             currentPortfolioValue;
 
           console.log(
-            `Stable Token Balance (${Args.stableToken}): ${
-              Number(stableTokenBalance) /
-              Math.pow(10, quoteResponseDto.fromToken.decimals)
-            } ${Args.stableToken}`
+            `Stable Token Balance (${Args.stableToken}): ${stableTokenAmnt} ${Args.stableToken}`
           );
           console.log(
             `Target Token Balance (${Args.targetToken}): ${
@@ -152,6 +150,22 @@ process.on("unhandledRejection", (error) => {
                   `${Args.stableToken}_${Args.targetToken}`,
                   "LastBuyPrice",
                   targetTokenCurrentPrice
+                );
+                const bal = await wallet.GetTokenBalance(
+                  targetTokenContractAddress
+                );
+                const balAmnt =
+                  Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
+                const trade = {
+                  date: new Date().getTime(),
+                  sold: Args.stableToken,
+                  soldAmount: stableTokenAmnt,
+                  bought: Args.targetToken,
+                  boughtAmount: balAmnt,
+                };
+                await redis.lPush(
+                  `${Args.stableToken}_${Args.targetToken}_SWAP_HISTORY`,
+                  JSON.stringify(trade)
                 );
                 currentStatus = "WAITING_TO_SELL";
               } catch (error) {
@@ -217,10 +231,11 @@ process.on("unhandledRejection", (error) => {
           };
           const quoteResponseDto = await router.GetQuote(params);
 
+          const targetTokenAmnt =
+            Number(targetTokenBalance) /
+            Math.pow(10, quoteResponseDto.fromToken.decimals);
           const currentPortfolioValue =
-            (Number(targetTokenBalance) /
-              Math.pow(10, quoteResponseDto.fromToken.decimals)) *
-            targetTokenCurrentPrice;
+            targetTokenAmnt * targetTokenCurrentPrice;
           const toTokenAmount =
             (1 - Args.slippagePercent / 100) *
             (Number(quoteResponseDto.toTokenAmount) /
@@ -252,8 +267,7 @@ process.on("unhandledRejection", (error) => {
 
           console.log(`Current Status: ${currentStatus}`);
 
-          const sellLimitReached =
-            targetTokenCurrentPrice >= sellLimitPrice;
+          const sellLimitReached = targetTokenCurrentPrice >= sellLimitPrice;
           const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
           if (sellLimitReached || stopLimitReached) {
@@ -295,6 +309,22 @@ process.on("unhandledRejection", (error) => {
                   `${Args.stableToken}_${Args.targetToken}`,
                   "SellLimitPrice",
                   9999999999
+                );
+                const bal = await wallet.GetTokenBalance(
+                  stableTokenContractAddress
+                );
+                const balAmnt =
+                  Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
+                const trade = {
+                  date: new Date().getTime(),
+                  sold: Args.targetToken,
+                  soldAmount: targetTokenAmnt,
+                  bought: Args.stableToken,
+                  boughtAmount: balAmnt,
+                };
+                await redis.lPush(
+                  `${Args.stableToken}_${Args.targetToken}_SWAP_HISTORY`,
+                  JSON.stringify(trade)
                 );
                 currentStatus = "WAITING_TO_BUY";
               } catch (error) {
