@@ -66,7 +66,7 @@ export class Wallet {
       const contract = new web3.eth.Contract(ERC20Abi, tokenContractAddress);
       const balance = await contract.methods.balanceOf(this.Address).call();
       return BigInt(balance);
-    }
+    };
     const balance = await timeout(fn(), 5000);
     return balance;
   }
