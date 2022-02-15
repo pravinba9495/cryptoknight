@@ -1,6 +1,6 @@
 {
   "name": "kryptonite",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Automated crypto swapping bot, written in Node.js. Supports multiple protocols like Uniswap, Curve, SushiSwap, Balancer, etc using 1inch AggregatorV4 router",
   "main": "dist/index.js",
   "scripts": {
