@@ -20,7 +20,6 @@ Automated crypto swapping bot, written in Node.js. Supports multiple protocols l
 - [Instructions](#instructions)
 - [Example](#examples)
 - [Disclaimer](#disclaimer)
-- [Documentation](#documentation)
 - [Development](#development)
 - [Maintainers](#maintainers)
 - [License](#license)
@@ -202,9 +201,6 @@ docker run -d --name kryptonite pravinba9495/kryptonite:latest kryptonite \
 
 ## Disclaimer
 By using Kryptonite, you understand and agree that there might be bugs in the code that could potentially lead to financial loss. You and only you are responsible for the use of this tool and any financial loss that it may cause. Nobody else shall be held accountable in this regard. Stop using this tool if you do not agree to this. Do conduct your own due diligence and consult your financial advisor before making any investment decisions.
-
-## Documentation
-Kryptonite documentation is hosted at [Read the docs](https://pkg.go.dev/github.com/pravinba9495/kryptonite).
 
 ## Development
 Kryptonite is still under active development. Contributions are always welcome!
