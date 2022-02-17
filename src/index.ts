@@ -151,35 +151,44 @@ process.on("unhandledRejection", (error) => {
                   "LastBuyPrice",
                   targetTokenCurrentPrice
                 );
-                const bal = await wallet.GetTokenBalance(
-                  targetTokenContractAddress
-                );
-                const balAmnt =
-                  Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
-                stableTokenCurrentPrice = await Kraken.GetCoinPrice(
-                  Args.stableTokenContractAddress
-                );
-                targetTokenCurrentPrice = await Kraken.GetCoinPrice(
-                  Args.targetTokenTickerKraken
-                );
-                const trade = {
-                  date: new Date().getTime(),
-                  sold: Args.stableToken,
-                  soldAmount: stableTokenAmnt,
-                  soldValue: stableTokenAmnt * stableTokenCurrentPrice,
-                  bought: Args.targetToken,
-                  boughtAmount: balAmnt,
-                  boughtValue: balAmnt * targetTokenCurrentPrice,
-                  tradeLossPercent:
-                    ((balAmnt * targetTokenCurrentPrice -
-                      stableTokenAmnt * stableTokenCurrentPrice) *
-                      100) /
-                    (stableTokenAmnt * stableTokenCurrentPrice),
-                };
-                await redis.lPush(
-                  `${Args.stableToken}_${Args.targetToken}_SWAP_HISTORY`,
-                  JSON.stringify(trade)
-                );
+                while (true) {
+                  try {
+                    const bal = await wallet.GetTokenBalance(
+                      targetTokenContractAddress
+                    );
+                    const balAmnt =
+                      Number(bal) /
+                      Math.pow(10, quoteResponseDto.toToken.decimals);
+                    stableTokenCurrentPrice = await Kraken.GetCoinPrice(
+                      Args.stableTokenContractAddress
+                    );
+                    targetTokenCurrentPrice = await Kraken.GetCoinPrice(
+                      Args.targetTokenTickerKraken
+                    );
+                    const trade = {
+                      date: new Date().getTime(),
+                      sold: Args.stableToken,
+                      soldAmount: stableTokenAmnt,
+                      soldValue: stableTokenAmnt * stableTokenCurrentPrice,
+                      bought: Args.targetToken,
+                      boughtAmount: balAmnt,
+                      boughtValue: balAmnt * targetTokenCurrentPrice,
+                      tradeLossPercent:
+                        ((balAmnt * targetTokenCurrentPrice -
+                          stableTokenAmnt * stableTokenCurrentPrice) *
+                          100) /
+                        (stableTokenAmnt * stableTokenCurrentPrice),
+                    };
+                    await redis.lPush(
+                      `${Args.stableToken}_${Args.targetToken}_SWAP_HISTORY`,
+                      JSON.stringify(trade)
+                    );
+                    break;
+                  } catch (error) {
+                    console.error(error);
+                    await Wait(5);
+                  }
+                }
                 currentStatus = "WAITING_TO_SELL";
               } catch (error) {
                 console.error(error);
@@ -325,36 +334,45 @@ process.on("unhandledRejection", (error) => {
                   "SellLimitPrice",
                   9999999999
                 );
-                const bal = await wallet.GetTokenBalance(
-                  stableTokenContractAddress
-                );
-                const balAmnt =
-                  Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
+                while (true) {
+                  try {
+                    const bal = await wallet.GetTokenBalance(
+                      stableTokenContractAddress
+                    );
+                    const balAmnt =
+                      Number(bal) /
+                      Math.pow(10, quoteResponseDto.toToken.decimals);
 
-                stableTokenCurrentPrice = await Kraken.GetCoinPrice(
-                  Args.stableTokenContractAddress
-                );
-                targetTokenCurrentPrice = await Kraken.GetCoinPrice(
-                  Args.targetTokenTickerKraken
-                );
-                const trade = {
-                  date: new Date().getTime(),
-                  sold: Args.targetToken,
-                  soldAmount: targetTokenAmnt,
-                  soldValue: targetTokenAmnt * targetTokenCurrentPrice,
-                  bought: Args.stableToken,
-                  boughtAmount: balAmnt,
-                  boughtValue: balAmnt * stableTokenCurrentPrice,
-                  tradeLossPercent:
-                    ((balAmnt * stableTokenCurrentPrice -
-                      targetTokenAmnt * targetTokenCurrentPrice) *
-                      100) /
-                    (targetTokenAmnt * targetTokenCurrentPrice),
-                };
-                await redis.lPush(
-                  `${Args.stableToken}_${Args.targetToken}_SWAP_HISTORY`,
-                  JSON.stringify(trade)
-                );
+                    stableTokenCurrentPrice = await Kraken.GetCoinPrice(
+                      Args.stableTokenContractAddress
+                    );
+                    targetTokenCurrentPrice = await Kraken.GetCoinPrice(
+                      Args.targetTokenTickerKraken
+                    );
+                    const trade = {
+                      date: new Date().getTime(),
+                      sold: Args.targetToken,
+                      soldAmount: targetTokenAmnt,
+                      soldValue: targetTokenAmnt * targetTokenCurrentPrice,
+                      bought: Args.stableToken,
+                      boughtAmount: balAmnt,
+                      boughtValue: balAmnt * stableTokenCurrentPrice,
+                      tradeLossPercent:
+                        ((balAmnt * stableTokenCurrentPrice -
+                          targetTokenAmnt * targetTokenCurrentPrice) *
+                          100) /
+                        (targetTokenAmnt * targetTokenCurrentPrice),
+                    };
+                    await redis.lPush(
+                      `${Args.stableToken}_${Args.targetToken}_SWAP_HISTORY`,
+                      JSON.stringify(trade)
+                    );
+                    break;
+                  } catch (error) {
+                    console.error(error);
+                    await Wait(5);
+                  }
+                }
                 currentStatus = "WAITING_TO_BUY";
               } catch (error) {
                 console.error(error);
