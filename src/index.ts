@@ -395,7 +395,7 @@ process.on("unhandledRejection", (error) => {
             }
           } else {
             console.log(
-              `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${
+              `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Last Bought Price: $${lastBuyPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${
                 Args.slippagePercent
               }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
                 quoteResponseDto.toToken.symbol
