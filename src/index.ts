@@ -124,7 +124,7 @@ process.on("unhandledRejection", (error) => {
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
-                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
+                }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
                   quoteResponseDto.toToken.symbol
                 })`
               );
@@ -178,14 +178,14 @@ process.on("unhandledRejection", (error) => {
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
-                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
+                }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
                   quoteResponseDto.toToken.symbol
                 })`
               );
             }
           } else {
             console.log(
-              `HODL (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
+              `HODL (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
             );
           }
         } else if (currentStatus === "WAITING_TO_SELL") {
@@ -281,9 +281,11 @@ process.on("unhandledRejection", (error) => {
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
-                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
+                }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
                   quoteResponseDto.toToken.symbol
-                }, ${profitOrLossPercent > 0 ? "Profit" : "Loss"}: ${
+                }, ${
+                  profitOrLossPercent > 0 ? "Minimum Profit" : "Maximum Loss"
+                }: ${
                   profitOrLossPercent > 0 ? "+" : ""
                 }${profitOrLossPercent}%)`
               );
@@ -337,9 +339,11 @@ process.on("unhandledRejection", (error) => {
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
-                }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
+                }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
                   quoteResponseDto.toToken.symbol
-                }, ${profitOrLossPercent > 0 ? "Profit" : "Loss"}: ${
+                }, ${
+                  profitOrLossPercent > 0 ? "Minimum Profit" : "Maximum Loss"
+                }: ${
                   profitOrLossPercent > 0 ? "+" : ""
                 }${profitOrLossPercent}%)`
               );
@@ -348,11 +352,11 @@ process.on("unhandledRejection", (error) => {
             console.log(
               `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${
                 Args.slippagePercent
-              }%, Current Portfolio Value: $${currentPortfolioValue}, Potential Return: ${toTokenAmount} ${
+              }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
                 quoteResponseDto.toToken.symbol
-              }, ${profitOrLossPercent > 0 ? "Profit" : "Loss"}: ${
-                profitOrLossPercent > 0 ? "+" : ""
-              }${profitOrLossPercent}%)`
+              }, ${
+                profitOrLossPercent > 0 ? "Minimum Profit" : "Maximum Loss"
+              }: ${profitOrLossPercent > 0 ? "+" : ""}${profitOrLossPercent}%)`
             );
           }
         } else {
