@@ -299,7 +299,7 @@ process.on("unhandledRejection", (error) => {
               stopLimitReached
             ) {
               console.log(
-                `SELL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                `SELL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Last Bought Price: $${lastBuyPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
@@ -380,7 +380,7 @@ process.on("unhandledRejection", (error) => {
               }
             } else {
               console.log(
-                `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Last Bought Price: $${lastBuyPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
