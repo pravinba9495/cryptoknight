@@ -109,7 +109,9 @@ process.on("unhandledRejection", (error) => {
               Math.pow(10, quoteResponseDto.toToken.decimals)
             } ${Args.targetToken}`
           );
-          console.log(`Current Status: ${currentStatus}, Current Signal: ${signal}`);
+          console.log(
+            `Current Status: ${currentStatus}, Current Signal: ${signal}`
+          );
 
           if (signal === "BUY") {
             // Liquidity provider fee: 0.5% approx
@@ -244,7 +246,9 @@ process.on("unhandledRejection", (error) => {
             } ${Args.targetToken}`
           );
 
-          console.log(`Current Status: ${currentStatus}, Current Signal: ${signal}`);
+          console.log(
+            `Current Status: ${currentStatus}, Current Signal: ${signal}`
+          );
 
           if (signal === "SELL" && profitOrLossPercent >= 0) {
             // Liquidity provider fee: 0.5% approx

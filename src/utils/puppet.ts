@@ -7,10 +7,7 @@ export const GetTradeSignal = async (ticker: string) => {
       width: 1920,
       height: 1080,
     },
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox'
-  ]
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   const page = await browser.newPage();
   await page.goto(`https://www.tradingview.com/symbols/${ticker}/technicals/`);
