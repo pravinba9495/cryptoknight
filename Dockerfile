@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM node:16-alpine3.14
 
 # Installs latest Chromium package.
 RUN apk add --no-cache \
@@ -7,10 +7,7 @@ RUN apk add --no-cache \
       freetype \
       harfbuzz \
       ca-certificates \
-      ttf-freefont \
-      nodejs \
-      npm \
-      yarn
+      ttf-freefont
 
 # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
@@ -31,5 +28,9 @@ COPY package.json /home/pptruser/pravinba9495/kryptonite
 COPY package-lock.json /home/pptruser/pravinba9495/kryptonite
 WORKDIR /home/pptruser/pravinba9495/kryptonite
 
-RUN yarn install
+USER root
+RUN npm install
+
+USER pptruser
+
 CMD node index.js
