@@ -4,6 +4,7 @@ import { Wallet } from "./api/wallet";
 import { Connect } from "./redis";
 import { Args } from "./utils/flags";
 import { PrepareForSwap } from "./utils/prepare";
+import { GetTradeSignal } from "./utils/puppet";
 import { Wait } from "./utils/wait";
 
 process.on("uncaughtException", (error) => {
@@ -76,15 +77,9 @@ process.on("unhandledRejection", (error) => {
           Args.targetTokenTickerKraken
         );
 
-        if (currentStatus === "WAITING_TO_BUY") {
-          const buyLimitPrice =
-            Number(
-              await redis.hGet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "BuyLimitPrice"
-              )
-            ) || 0;
+        const signal = await GetTradeSignal(Args.targetTokenTickerKraken);
 
+        if (currentStatus === "WAITING_TO_BUY") {
           const params = {
             fromTokenAddress: stableTokenContractAddress,
             toTokenAddress: targetTokenContractAddress,
@@ -116,11 +111,11 @@ process.on("unhandledRejection", (error) => {
           );
           console.log(`Current Status: ${currentStatus}`);
 
-          if (buyLimitPrice >= targetTokenCurrentPrice) {
+          if (signal === "BUY") {
             // Liquidity provider fee: 0.5% approx
             if (actualSlippage <= Args.slippagePercent + 0.5) {
               console.log(
-                `BUY (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                `BUY (Current Price: $${targetTokenCurrentPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
@@ -135,16 +130,6 @@ process.on("unhandledRejection", (error) => {
                   stableTokenContractAddress,
                   stableTokenBalance,
                   targetTokenContractAddress
-                );
-                await redis.hSet(
-                  `${Args.stableToken}_${Args.targetToken}`,
-                  "SellLimitPrice",
-                  (Args.profitPercent / 100 + 1) * targetTokenCurrentPrice
-                );
-                await redis.hSet(
-                  `${Args.stableToken}_${Args.targetToken}`,
-                  "StopLimitPrice",
-                  (1 - Args.stopLossPercent / 100) * targetTokenCurrentPrice
                 );
                 await redis.hSet(
                   `${Args.stableToken}_${Args.targetToken}`,
@@ -196,7 +181,7 @@ process.on("unhandledRejection", (error) => {
               }
             } else {
               console.log(
-                `HODL (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                `HODL (Current Price: $${targetTokenCurrentPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
@@ -207,7 +192,7 @@ process.on("unhandledRejection", (error) => {
             }
           } else {
             console.log(
-              `HODL (Current Price: $${targetTokenCurrentPrice}, Buy Limit: $${buyLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
+              `HODL (Current Price: $${targetTokenCurrentPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
             );
           }
         } else if (currentStatus === "WAITING_TO_SELL") {
@@ -218,34 +203,6 @@ process.on("unhandledRejection", (error) => {
                 "LastBuyPrice"
               )
             ) || targetTokenCurrentPrice;
-          let stopLimitPrice =
-            Number(
-              await redis.hGet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "StopLimitPrice"
-              )
-            ) || 0;
-
-          const suggestedStopLimitPrice =
-            (1 - Args.stopLossPercent / 100) * targetTokenCurrentPrice;
-
-          if (suggestedStopLimitPrice > stopLimitPrice) {
-            stopLimitPrice = suggestedStopLimitPrice;
-            await redis.hSet(
-              `${Args.stableToken}_${Args.targetToken}`,
-              "StopLimitPrice",
-              stopLimitPrice
-            );
-          }
-
-          const sellLimitPrice =
-            Number(
-              await redis.hGet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "SellLimitPrice"
-              )
-            ) || 9999999999;
-
           const params = {
             fromTokenAddress: targetTokenContractAddress,
             toTokenAddress: stableTokenContractAddress,
@@ -289,17 +246,11 @@ process.on("unhandledRejection", (error) => {
 
           console.log(`Current Status: ${currentStatus}`);
 
-          const sellLimitReached = targetTokenCurrentPrice >= sellLimitPrice;
-          const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
-
-          if (sellLimitReached || stopLimitReached) {
+          if (signal === "SELL") {
             // Liquidity provider fee: 0.5% approx
-            if (
-              actualSlippage <= Args.slippagePercent + 0.5 ||
-              stopLimitReached
-            ) {
+            if (actualSlippage <= Args.slippagePercent + 0.5) {
               console.log(
-                `SELL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Last Bought Price: $${lastBuyPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                `SELL (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
@@ -380,7 +331,7 @@ process.on("unhandledRejection", (error) => {
               }
             } else {
               console.log(
-                `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Last Bought Price: $${lastBuyPrice}, Stop Limit: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
+                `HODL (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
@@ -395,7 +346,7 @@ process.on("unhandledRejection", (error) => {
             }
           } else {
             console.log(
-              `HODL (Current Price: $${targetTokenCurrentPrice}, Sell Limit: $${sellLimitPrice}, Last Bought Price: $${lastBuyPrice}, Stop Limit: $${stopLimitPrice}, Slippage Allowed: +${
+              `HODL (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Slippage Allowed: +${
                 Args.slippagePercent
               }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
                 quoteResponseDto.toToken.symbol
