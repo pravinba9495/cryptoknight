@@ -1,4 +1,4 @@
-import * as puppeteer from "puppeteer";
+import puppeteer from "puppeteer";
 
 export const GetTradeSignal = async (ticker: string) => {
   const browser = await puppeteer.launch({
@@ -7,12 +7,18 @@ export const GetTradeSignal = async (ticker: string) => {
       width: 1920,
       height: 1080,
     },
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox'
+  ]
   });
   const page = await browser.newPage();
   await page.goto(`https://www.tradingview.com/symbols/${ticker}/technicals/`);
   const elements = await page.$$(".speedometerSignal-DPgs-R4s");
-  if(elements.length !== 3) {
-    return Promise.reject('Puppeteer could not fetch trade signals from TradingView');
+  if (elements.length !== 3) {
+    return Promise.reject(
+      "Puppeteer could not fetch trade signals from TradingView"
+    );
   }
   const promises: any[] = [];
   elements.forEach((element) => {
