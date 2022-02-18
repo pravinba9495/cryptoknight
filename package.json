@@ -4,11 +4,9 @@
   "description": "Automated crypto swapping bot, written in Node.js. Supports multiple protocols like Uniswap, Curve, SushiSwap, Balancer, etc using 1inch AggregatorV4 router",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "tsc": "tsc",
-    "pkg": "pkg -t host dist/index.js --output bin/kryptonite",
-    "docker": "pkg -t node14-alpine-x64 dist/index.js --output bin/kryptonite"
+    "server": "node index.js",
+    "start": "npm run tsc && node dist/index.js",
+    "tsc": "tsc"
   },
   "repository": {
     "type": "git",
@@ -24,7 +22,6 @@
   "dependencies": {
     "axios": "^0.25.0",
     "bignumber.js": "^9.0.2",
-    "pkg": "^5.5.2",
     "puppeteer": "^13.3.2",
     "redis": "^4.0.2",
     "web3": "^1.7.0",
