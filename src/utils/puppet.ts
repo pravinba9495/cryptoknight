@@ -18,12 +18,14 @@ export const GetTradeSignal = async (ticker: string) => {
     );
   }
   const promises: any[] = [];
-  elements.forEach((element) => {
-    promises.push(
-      page.evaluate((e) => {
-        return e.textContent;
-      }, element)
-    );
+  elements.forEach((element, index) => {
+    if (index === 1) {
+      promises.push(
+        page.evaluate((e) => {
+          return e.textContent;
+        }, element)
+      );
+    }
   });
   const signals = await Promise.all(promises);
   const isBuy =
