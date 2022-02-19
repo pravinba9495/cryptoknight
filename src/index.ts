@@ -4,7 +4,7 @@ import { Wallet } from "./api/wallet";
 import { Connect } from "./redis";
 import { Args } from "./utils/flags";
 import { PrepareForSwap } from "./utils/prepare";
-import { GetTradeSignal } from "./utils/puppet";
+import { GetTradeSignal, InitTradingViewTechnicals } from "./utils/puppet";
 import { Wait } from "./utils/wait";
 
 process.on("uncaughtException", (error) => {
@@ -37,6 +37,8 @@ process.on("unhandledRejection", (error) => {
     ) {
       throw new Error("tokenContractAddress cannot be empty");
     }
+
+    InitTradingViewTechnicals(Args.targetTokenTickerKraken, Args.chartInterval);
 
     while (true) {
       try {
@@ -77,10 +79,7 @@ process.on("unhandledRejection", (error) => {
           Args.targetTokenTickerKraken
         );
 
-        const signal = await GetTradeSignal(
-          Args.targetTokenTickerKraken,
-          Args.chartInterval
-        );
+        const signal = await GetTradeSignal();
 
         if (currentStatus === "WAITING_TO_BUY") {
           const params = {
