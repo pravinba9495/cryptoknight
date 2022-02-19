@@ -250,7 +250,7 @@ process.on("unhandledRejection", (error) => {
             `Current Status: ${currentStatus}, Current Signal: ${signal}`
           );
 
-          if (signal === "SELL" && profitOrLossPercent >= 0) {
+          if (signal === "SELL" && profitOrLossPercent >= Args.minProfitPercent) {
             // Liquidity provider fee: 0.5% approx
             if (actualSlippage <= Args.slippagePercent + 0.5) {
               console.log(

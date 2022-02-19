@@ -25,7 +25,6 @@ export const Args: any = yargs(process.argv.slice(2)).options({
   password: { type: "string", default: "kryptonite", demandOption: true },
   redisAddress: { type: "string", demandOption: true },
   chainId: { type: "number", default: 137, demandOption: true },
-  profitPercent: { type: "number", default: 50, demandOption: true },
-  stopLossPercent: { type: "number", default: 25, demandOption: true },
+  minProfitPercent: { type: "number", default: 1, demandOption: true },
   slippagePercent: { type: "number", default: 1, demandOption: true },
 }).argv;
