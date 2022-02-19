@@ -81,6 +81,13 @@ process.on("unhandledRejection", (error) => {
         );
 
         const signal = await GetTradeSignal();
+        if (signal === "SELL" || signal === "BUY") {
+          await SendMessage(
+            Args.botToken,
+            Args.chatId,
+            `Signal Received: ${signal}`
+          );
+        }
 
         if (currentStatus === "WAITING_TO_BUY") {
           const params = {
@@ -117,11 +124,6 @@ process.on("unhandledRejection", (error) => {
           );
 
           if (signal === "BUY") {
-            await SendMessage(
-              Args.botToken,
-              Args.chatId,
-              `Signal Received: ${signal}`
-            );
             // Liquidity provider fee: 0.5% approx
             if (actualSlippage <= Args.slippagePercent + 0.5) {
               console.log(
@@ -257,14 +259,6 @@ process.on("unhandledRejection", (error) => {
           console.log(
             `Current Status: ${currentStatus}, Current Signal: ${signal}`
           );
-
-          if (signal === "SELL") {
-            await SendMessage(
-              Args.botToken,
-              Args.chatId,
-              `Signal Received: ${signal}`
-            );
-          }
 
           if (
             signal === "SELL" &&
