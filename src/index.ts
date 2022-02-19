@@ -77,7 +77,10 @@ process.on("unhandledRejection", (error) => {
           Args.targetTokenTickerKraken
         );
 
-        const signal = await GetTradeSignal(Args.targetTokenTickerKraken, Args.chartInterval);
+        const signal = await GetTradeSignal(
+          Args.targetTokenTickerKraken,
+          Args.chartInterval
+        );
 
         if (currentStatus === "WAITING_TO_BUY") {
           const params = {
@@ -250,7 +253,10 @@ process.on("unhandledRejection", (error) => {
             `Current Status: ${currentStatus}, Current Signal: ${signal}`
           );
 
-          if (signal === "SELL" && profitOrLossPercent >= Args.minProfitPercent) {
+          if (
+            signal === "SELL" &&
+            profitOrLossPercent >= Args.minProfitPercent
+          ) {
             // Liquidity provider fee: 0.5% approx
             if (actualSlippage <= Args.slippagePercent + 0.5) {
               console.log(
