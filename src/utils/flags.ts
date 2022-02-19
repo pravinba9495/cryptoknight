@@ -1,30 +1,18 @@
-import yargs from "yargs/yargs";
-
-/**
- * Args is a map of all the command line arguments received
- */
-export const Args: any = yargs(process.argv.slice(2)).options({
-  publicKey: { type: "string", demandOption: true },
-  privateKey: { type: "string", demandOption: true },
-  mode: { type: "string", default: "MANUAL", demandOption: true },
-  chatId: { type: "string", demandOption: false },
-  chartInterval: { type: "string", default: "1h", demandOption: true },
-  stableToken: { type: "string", default: "USDC", demandOption: true },
-  targetToken: { type: "string", default: "WMATIC", demandOption: true },
-  stableTokenTickerKraken: {
-    type: "string",
-    default: "USDCUSD",
-    demandOption: true,
-  },
-  targetTokenTickerKraken: {
-    type: "string",
-    default: "MATICUSD",
-    demandOption: true,
-  },
-  botToken: { type: "string", demandOption: true },
-  password: { type: "string", default: "kryptonite", demandOption: true },
-  redisAddress: { type: "string", demandOption: true },
-  chainId: { type: "number", default: 137, demandOption: true },
-  minProfitPercent: { type: "number", default: 1, demandOption: true },
-  slippagePercent: { type: "number", default: 1, demandOption: true },
-}).argv;
+let ENV: any = process.env;
+export const Args = {
+  publicKey: ENV.PUBLIC_KEY || "",
+  privateKey: ENV.PRIVATE_KEY || "",
+  mode: ENV.MODE || "MANUAL",
+  chatId: ENV.CHAT_ID || "",
+  chartInterval: ENV.CHART_INTERVAL || "1h",
+  stableToken: ENV.STABLE_TOKEN || "USDC",
+  targetToken: ENV.TARGET_TOKEN || "WMATIC",
+  stableTokenTickerKraken: ENV.STABLE_TOKEN_TICKER_KRAKEN || "USDCUSD",
+  targetTokenTickerKraken: ENV.TARGET_TOKEN_TICKER_KRAKEN || "MATICUSD",
+  botToken: ENV.BOT_TOKEN || "",
+  password: ENV.PASSWORD || "kryptonite",
+  redisAddress: ENV.REDIS_ADDRESS || "",
+  chainId: Number(ENV.CHAIN_ID || 137),
+  minProfitPercent: Number(ENV.MIN_PROFIT_PERCENT || 1),
+  slippagePercent: Number(ENV.SLIPPAGE_PERCENT || 1),
+};
