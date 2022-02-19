@@ -90,6 +90,13 @@ process.on("unhandledRejection", (error) => {
         }
 
         if (currentStatus === "WAITING_TO_BUY") {
+          const buyLimitPrice =
+            Number(
+              await redis.hGet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "BuyLimitPrice"
+              )
+            ) || 0;
           const params = {
             fromTokenAddress: stableTokenContractAddress,
             toTokenAddress: targetTokenContractAddress,
@@ -123,7 +130,9 @@ process.on("unhandledRejection", (error) => {
             `Current Status: ${currentStatus}, Current Signal: ${signal}`
           );
 
-          if (signal === "BUY") {
+          const buyLimitReached = buyLimitPrice >= targetTokenCurrentPrice;
+
+          if (signal === "BUY" || buyLimitReached) {
             // Liquidity provider fee: 0.5% approx
             if (actualSlippage <= Args.slippagePercent + 0.5) {
               console.log(
@@ -142,6 +151,21 @@ process.on("unhandledRejection", (error) => {
                   stableTokenContractAddress,
                   stableTokenBalance,
                   targetTokenContractAddress
+                );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "BuyLimitPrice",
+                  0
+                );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "StopLimitPrice",
+                  0
+                );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "SellLimitPrice",
+                  9999999999
                 );
                 await redis.hSet(
                   `${Args.stableToken}_${Args.targetToken}`,
@@ -215,6 +239,23 @@ process.on("unhandledRejection", (error) => {
                 "LastBuyPrice"
               )
             ) || targetTokenCurrentPrice;
+
+          let stopLimitPrice =
+            Number(
+              await redis.hGet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "StopLimitPrice"
+              )
+            ) || 0;
+
+          const sellLimitPrice =
+            Number(
+              await redis.hGet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "SellLimitPrice"
+              )
+            ) || 9999999999;
+
           const params = {
             fromTokenAddress: targetTokenContractAddress,
             toTokenAddress: stableTokenContractAddress,
@@ -260,9 +301,14 @@ process.on("unhandledRejection", (error) => {
             `Current Status: ${currentStatus}, Current Signal: ${signal}`
           );
 
+          const sellLimitReached = targetTokenCurrentPrice >= sellLimitPrice;
+          const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
+
           if (
-            signal === "SELL" &&
-            profitOrLossPercent >= Args.minProfitPercent
+            (signal === "SELL" &&
+              profitOrLossPercent >= Args.minProfitPercent) ||
+            sellLimitReached ||
+            stopLimitReached
           ) {
             // Liquidity provider fee: 0.5% approx
             if (actualSlippage <= Args.slippagePercent + 0.5) {
@@ -301,6 +347,11 @@ process.on("unhandledRejection", (error) => {
                   `${Args.stableToken}_${Args.targetToken}`,
                   "SellLimitPrice",
                   9999999999
+                );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "LastBuyPrice",
+                  0
                 );
                 while (true) {
                   try {
