@@ -149,7 +149,7 @@ process.on("unhandledRejection", (error) => {
                       Number(bal) /
                       Math.pow(10, quoteResponseDto.toToken.decimals);
                     stableTokenCurrentPrice = await Kraken.GetCoinPrice(
-                      Args.stableTokenContractAddress
+                      Args.stableTokenTickerKraken
                     );
                     targetTokenCurrentPrice = await Kraken.GetCoinPrice(
                       Args.targetTokenTickerKraken
@@ -304,7 +304,7 @@ process.on("unhandledRejection", (error) => {
                       Math.pow(10, quoteResponseDto.toToken.decimals);
 
                     stableTokenCurrentPrice = await Kraken.GetCoinPrice(
-                      Args.stableTokenContractAddress
+                      Args.stableTokenTickerKraken
                     );
                     targetTokenCurrentPrice = await Kraken.GetCoinPrice(
                       Args.targetTokenTickerKraken
