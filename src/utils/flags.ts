@@ -8,6 +8,7 @@ export const Args: any = yargs(process.argv.slice(2)).options({
   privateKey: { type: "string", demandOption: true },
   mode: { type: "string", default: "MANUAL", demandOption: true },
   chatId: { type: "string", demandOption: false },
+  chartInterval: { type: "string", default: "1h", demandOption: true },
   stableToken: { type: "string", default: "USDC", demandOption: true },
   targetToken: { type: "string", default: "WMATIC", demandOption: true },
   stableTokenTickerKraken: {

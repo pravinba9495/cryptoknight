@@ -1,6 +1,6 @@
 import puppeteer from "puppeteer";
 
-export const GetTradeSignal = async (ticker: string) => {
+export const GetTradeSignal = async (ticker: string, interval: string) => {
   const browser = await puppeteer.launch({
     headless: true,
     defaultViewport: {
@@ -11,6 +11,9 @@ export const GetTradeSignal = async (ticker: string) => {
   });
   const page = await browser.newPage();
   await page.goto(`https://www.tradingview.com/symbols/${ticker}/technicals/`);
+  await page.waitForSelector(`button[id="${interval}"]`);
+  await page.click(`button[id="${interval}"]`);
+  await page.waitForTimeout(5000);
   const elements = await page.$$(".speedometerSignal-DPgs-R4s");
   if (elements.length !== 3) {
     return Promise.reject(

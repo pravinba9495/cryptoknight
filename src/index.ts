@@ -77,7 +77,7 @@ process.on("unhandledRejection", (error) => {
           Args.targetTokenTickerKraken
         );
 
-        const signal = await GetTradeSignal(Args.targetTokenTickerKraken);
+        const signal = await GetTradeSignal(Args.targetTokenTickerKraken, Args.chartInterval);
 
         if (currentStatus === "WAITING_TO_BUY") {
           const params = {
