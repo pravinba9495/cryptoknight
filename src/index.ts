@@ -41,6 +41,13 @@ process.on("unhandledRejection", (error) => {
 
     InitTradingViewTechnicals(Args.targetTokenTickerKraken, Args.chartInterval);
 
+    const t = 60;
+    await redis.setEx(
+      "LAST_SIGNAL_UPDATE",
+      t,
+      new Date().getTime().toString()
+    );
+
     while (true) {
       try {
         console.log(`\n\n${new Date()}\n`);
@@ -81,6 +88,22 @@ process.on("unhandledRejection", (error) => {
         );
 
         const signal = await GetTradeSignal();
+        if (signal.includes("BUY") || signal.includes("SELL") || signal.includes("WEAK")) {
+          await redis.setEx(
+            "LAST_SIGNAL_UPDATE",
+            t,
+            new Date().getTime().toString()
+          );
+        }
+
+        const exists = await redis.exists("LAST_SIGNAL_UPDATE");
+        if (exists !== 1) {
+          await SendMessage(
+            Args.botToken,
+            Args.chatId,
+            `Did not receive valid signal for more than ${t} seconds.`
+          );
+        }
 
         if (currentStatus === "WAITING_TO_BUY") {
           const buyLimitPrice =
