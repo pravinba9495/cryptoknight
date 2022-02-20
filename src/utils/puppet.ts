@@ -1,7 +1,7 @@
 import puppeteer from "puppeteer";
 import { Wait } from "./wait";
 
-let signal = "HOLD";
+let signal = "UNKNOWN";
 let browser: puppeteer.Browser;
 
 export const InitTradingViewTechnicals = async (
@@ -9,6 +9,7 @@ export const InitTradingViewTechnicals = async (
   interval: string
 ) => {
   while (true) {
+    signal = "UNKNOWN";
     try {
       browser = await puppeteer.launch({
         headless: true,
@@ -16,6 +17,7 @@ export const InitTradingViewTechnicals = async (
           width: 1920,
           height: 1080,
         },
+        timeout: 5000,
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
       });
       let isBuy = false;
@@ -32,6 +34,7 @@ export const InitTradingViewTechnicals = async (
         timeout: 10000,
       });
       while (true) {
+        signal = "UNKNOWN";
         try {
           await page.click(`button[id="${interval}"]`);
           await Wait(2);
@@ -58,16 +61,20 @@ export const InitTradingViewTechnicals = async (
           isSell =
             signals.filter((s) => s.includes("Strong Sell")).length ===
             signals.length;
-          signal = isBuy ? "BUY" : isSell ? "SELL" : "HOLD";
+          signal = isBuy
+            ? "BUY"
+            : isSell
+            ? "SELL"
+            : `WEAK ${signals[0].toUpperCase()}`;
         } catch (error) {
           console.error(error);
-          signal = "HOLD";
+          signal = "ERROR";
           break;
         }
-        await Wait(2);
+        await Wait(5);
       }
     } catch (error) {
-      signal = "HOLD";
+      signal = "ERROR";
       console.error(error);
       try {
         await browser.close();
@@ -75,7 +82,7 @@ export const InitTradingViewTechnicals = async (
         console.error(error);
       }
     }
-    await Wait(2);
+    await Wait(5);
   }
 };
 
