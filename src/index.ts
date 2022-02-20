@@ -81,13 +81,6 @@ process.on("unhandledRejection", (error) => {
         );
 
         const signal = await GetTradeSignal();
-        if (signal === "SELL" || signal === "BUY") {
-          await SendMessage(
-            Args.botToken,
-            Args.chatId,
-            `Signal Received: ${signal}`
-          );
-        }
 
         if (currentStatus === "WAITING_TO_BUY") {
           const buyLimitPrice =
@@ -145,6 +138,11 @@ process.on("unhandledRejection", (error) => {
                 })`
               );
               try {
+                await SendMessage(
+                  Args.botToken,
+                  Args.chatId,
+                  `Signal Received: ${signal}`
+                );
                 await PrepareForSwap(
                   router,
                   wallet,
@@ -331,6 +329,11 @@ process.on("unhandledRejection", (error) => {
                 }${profitOrLossPercent}%)`
               );
               try {
+                await SendMessage(
+                  Args.botToken,
+                  Args.chatId,
+                  `Signal Received: ${signal}`
+                );
                 await PrepareForSwap(
                   router,
                   wallet,
