@@ -204,6 +204,11 @@ process.on("unhandledRejection", (error) => {
                       `${Args.stableToken}_${Args.targetToken}_SWAP_HISTORY`,
                       JSON.stringify(trade)
                     );
+                    await SendMessage(
+                      Args.botToken,
+                      Args.chatId,
+                      JSON.stringify(trade, null, 2)
+                    );
                     break;
                   } catch (error) {
                     console.error(error);
@@ -385,6 +390,11 @@ process.on("unhandledRejection", (error) => {
                     await redis.lPush(
                       `${Args.stableToken}_${Args.targetToken}_SWAP_HISTORY`,
                       JSON.stringify(trade)
+                    );
+                    await SendMessage(
+                      Args.botToken,
+                      Args.chatId,
+                      JSON.stringify(trade, null, 2)
                     );
                     break;
                   } catch (error) {
