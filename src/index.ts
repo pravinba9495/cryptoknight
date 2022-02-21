@@ -155,12 +155,15 @@ process.on("unhandledRejection", (error) => {
             } ${Args.targetToken}`
           );
           console.log(
-            `Current Status: ${currentStatus}, Current Signal: ${signal}`
+            `Current Status: ${currentStatus}, Current Mode: ${Args.mode}, Current Signal: ${signal}`
           );
 
           const buyLimitReached = buyLimitPrice >= targetTokenCurrentPrice;
 
-          if (signal === "BUY" || buyLimitReached) {
+          if (
+            (signal === "BUY" && Args.mode === "AUTO") ||
+            (buyLimitReached && Args.mode === "MANUAL")
+          ) {
             // Liquidity provider fee: 0.5% approx
             if (actualSlippage <= Args.slippagePercent + 0.5) {
               console.log(
@@ -344,9 +347,9 @@ process.on("unhandledRejection", (error) => {
 
           if (
             (signal === "SELL" &&
+              Args.mode === "AUTO" &&
               profitOrLossPercent >= Args.minProfitPercent) ||
-            sellLimitReached ||
-            stopLimitReached
+            ((sellLimitReached || stopLimitReached) && Args.mode === "MANUAL")
           ) {
             // Liquidity provider fee: 0.5% approx
             if (actualSlippage <= Args.slippagePercent + 0.5) {

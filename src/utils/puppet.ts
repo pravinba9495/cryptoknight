@@ -21,13 +21,13 @@ export const InitTradingViewTechnicals = async (
       },
       timeout: 5000,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      pipe: true
+      pipe: true,
     });
     console.log("Browser Launch Successful");
     let isBuy = false;
     let isSell = false;
     let page = await browser.newPage();
-    console.log('Page created');
+    console.log("Page created");
     const fn = () => {
       return page.goto(
         `https://www.tradingview.com/symbols/${ticker}/technicals/`
