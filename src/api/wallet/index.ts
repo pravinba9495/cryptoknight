@@ -135,6 +135,18 @@ export class Wallet {
   }
 
   /**
+   * SuggestGasPrice suggests gas price based on the current state of the network
+   * @returns Promise<string> Gas Price
+   */
+  async SuggestGasPrice() {
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
+    );
+    const gasPrice = await web3.eth.getGasPrice();
+    return gasPrice;
+  }
+
+  /**
    * BroadcastRawTransaction sends the signed transaction to the node
    * @param transaction Signed Transaction
    * @returns Promise<string> Hash of the transaction

@@ -75,6 +75,11 @@ process.on("unhandledRejection", (error) => {
           targetTokenContractAddress
         );
 
+        const gasPrice = await wallet.SuggestGasPrice();
+        console.log(
+          `Current Gas Price (Gwei): ${Number(gasPrice) / 1000000000}`
+        );
+
         if (
           stableTokenBalance !== BigInt(0) &&
           targetTokenBalance === BigInt(0)
