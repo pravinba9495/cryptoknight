@@ -13,31 +13,44 @@ export const Revoke = async (
   router: Router,
   tokenContractAddress: string
 ): Promise<string> => {
-  console.log(`Revoking the router access to the tokens`);
-  const revokeTx = await router.GetApproveTransactionData(
-    tokenContractAddress,
-    "0"
-  );
-  const revokeTxGas = await wallet.EstimateGas(revokeTx);
-  const revokeTxWithGas = {
-    ...revokeTx,
-    gas: revokeTxGas,
-  };
-  const signedRevokedTxWithGasRaw = await wallet.SignTransaction(
-    revokeTxWithGas
-  );
-  const revokeTxHash = await router.BroadcastRawTransaction(
-    signedRevokedTxWithGasRaw
-  );
-  console.log(`Token Access Revoke Transaction has been sent: ${revokeTxHash}`);
-  while (true) {
-    console.log("Querying transaction status");
-    const success = await wallet.GetTransactionReceipt(revokeTxHash);
-    if (success) {
-      return revokeTxHash;
-    } else {
-      return Promise.reject("Revoke Transaction failed");
+  let retries = 0;
+  while (retries < 3) {
+    try {
+      console.log(
+        `Revoking the router access to the tokens (Try: ${retries + 1})`
+      );
+      const revokeTx = await router.GetApproveTransactionData(
+        tokenContractAddress,
+        "0"
+      );
+      const revokeTxGas = await wallet.EstimateGas(revokeTx);
+      const revokeTxWithGas = {
+        ...revokeTx,
+        gas: revokeTxGas,
+      };
+      const signedRevokedTxWithGasRaw = await wallet.SignTransaction(
+        revokeTxWithGas
+      );
+      const revokeTxHash = await router.BroadcastRawTransaction(
+        signedRevokedTxWithGasRaw
+      );
+      console.log(
+        `Token Access Revoke Transaction has been sent: ${revokeTxHash}`
+      );
+      while (true) {
+        console.log("Querying transaction status");
+        const success = await wallet.GetTransactionReceipt(revokeTxHash);
+        if (success) {
+          return revokeTxHash;
+        } else {
+          return Promise.reject("Revoke Transaction failed");
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      retries += 1;
     }
   }
-  return revokeTxHash;
+  return Promise.reject("Revoke Transaction failed");
 };

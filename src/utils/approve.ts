@@ -15,33 +15,44 @@ export const Approve = async (
   tokenContractAddress: string,
   amount: string
 ): Promise<string> => {
-  console.log(
-    `Approving the router to access the required amount of tokens for a swap`
-  );
-  const approveTx = await router.GetApproveTransactionData(
-    tokenContractAddress,
-    amount
-  );
-  const approveTxGas = await wallet.EstimateGas(approveTx);
-  const approveTxWithGas = {
-    ...approveTx,
-    gas: approveTxGas,
-  };
-  const signedApproveTxWithGasRaw = await wallet.SignTransaction(
-    approveTxWithGas
-  );
-  const approveTxHash = await router.BroadcastRawTransaction(
-    signedApproveTxWithGasRaw
-  );
-  console.log(`Token Approval Transaction has been sent: ${approveTxHash}`);
-  while (true) {
-    console.log("Querying transaction status");
-    const success = await wallet.GetTransactionReceipt(approveTxHash);
-    if (success) {
-      return approveTxHash;
-    } else {
-      return Promise.reject("Approve Transaction failed");
+  let retries = 0;
+  while (retries < 3) {
+    try {
+      console.log(
+        `Approving the router to access the required amount of tokens for a swap (Try: ${
+          retries + 1
+        })`
+      );
+      const approveTx = await router.GetApproveTransactionData(
+        tokenContractAddress,
+        amount
+      );
+      const approveTxGas = await wallet.EstimateGas(approveTx);
+      const approveTxWithGas = {
+        ...approveTx,
+        gas: approveTxGas,
+      };
+      const signedApproveTxWithGasRaw = await wallet.SignTransaction(
+        approveTxWithGas
+      );
+      const approveTxHash = await router.BroadcastRawTransaction(
+        signedApproveTxWithGasRaw
+      );
+      console.log(`Token Approval Transaction has been sent: ${approveTxHash}`);
+      while (true) {
+        console.log("Querying transaction status");
+        const success = await wallet.GetTransactionReceipt(approveTxHash);
+        if (success) {
+          return approveTxHash;
+        } else {
+          return Promise.reject("Approve Transaction failed");
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      retries += 1;
     }
   }
-  return approveTxHash;
+  return Promise.reject("Approve Transaction failed");
 };

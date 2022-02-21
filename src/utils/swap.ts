@@ -14,34 +14,45 @@ export const Swap = async (
   router: Router,
   params: any
 ): Promise<string> => {
-  let swapTxWithGas = {};
-  while (true) {
+  let retries = 0;
+  while (retries < 3) {
     try {
-      console.log(`Initiating swapping the tokens`);
-      const swapTx = await router.GetSwapTransactionData(params);
-      swapTxWithGas = {
-        ...swapTx,
-        gas: swapTx.gas + Math.ceil(0.25 * swapTx.gas),
-      };
-      break;
+      let swapTxWithGas = {};
+      while (true) {
+        try {
+          console.log(`Initiating swapping the tokens (Try: ${retries + 1})`);
+          const swapTx = await router.GetSwapTransactionData(params);
+          swapTxWithGas = {
+            ...swapTx,
+            gas: swapTx.gas + Math.ceil(0.25 * swapTx.gas),
+          };
+          break;
+        } catch (error) {
+          console.error(error);
+          await Wait(5);
+        }
+      }
+      const signedApproveTxWithGasRaw = await wallet.SignTransaction(
+        swapTxWithGas
+      );
+      const swapTxHash = await router.BroadcastRawTransaction(
+        signedApproveTxWithGasRaw
+      );
+      console.log(`Token Swap Transaction has been sent: ${swapTxHash}`);
+      while (true) {
+        console.log("Querying transaction status");
+        const success = await wallet.GetTransactionReceipt(swapTxHash);
+        if (success) {
+          return swapTxHash;
+        } else {
+          return Promise.reject("Swap Transaction failed");
+        }
+      }
     } catch (error) {
       console.error(error);
-      await Wait(5);
+    } finally {
+      retries += 1;
     }
   }
-  const signedApproveTxWithGasRaw = await wallet.SignTransaction(swapTxWithGas);
-  const swapTxHash = await router.BroadcastRawTransaction(
-    signedApproveTxWithGasRaw
-  );
-  console.log(`Token Swap Transaction has been sent: ${swapTxHash}`);
-  while (true) {
-    console.log("Querying transaction status");
-    const success = await wallet.GetTransactionReceipt(swapTxHash);
-    if (success) {
-      return swapTxHash;
-    } else {
-      return Promise.reject("Swap Transaction failed");
-    }
-  }
-  return swapTxHash;
+  return Promise.reject("Swap Transaction failed");
 };
