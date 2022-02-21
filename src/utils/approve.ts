@@ -51,12 +51,14 @@ export const Approve = async (
     ...approveTx,
     gas: approveTxGas,
   };
-  const signedApproveTxWithGasRaw = await wallet.SignTransaction(
-    approveTxWithGas
-  );
   let approveTxHash = "";
   while (true) {
     try {
+      const nonce = await wallet.GetNonce();
+      const signedApproveTxWithGasRaw = await wallet.SignTransaction({
+        ...approveTxWithGas,
+        nonce: nonce.toString(),
+      });
       approveTxHash = await wallet.BroadcastRawTransaction(
         signedApproveTxWithGasRaw
       );

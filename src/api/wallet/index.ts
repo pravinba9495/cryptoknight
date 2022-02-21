@@ -130,7 +130,7 @@ export class Wallet {
     const web3 = new Web3(
       new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
     );
-    const nonce = await web3.eth.getTransactionCount(this.Address, "latest");
+    const nonce = await web3.eth.getTransactionCount(this.Address, "pending");
     return nonce;
   }
 

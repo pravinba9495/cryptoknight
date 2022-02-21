@@ -29,11 +29,14 @@ export const Swap = async (
       await Wait(5);
     }
   }
-  const signedSwapTxWithGasRaw = await wallet.SignTransaction(swapTxWithGas);
-
   let swapTxHash = "";
   while (true) {
     try {
+      const nonce = await wallet.GetNonce();
+      const signedSwapTxWithGasRaw = await wallet.SignTransaction({
+        ...swapTxWithGas,
+        nonce: nonce.toString(),
+      });
       swapTxHash = await wallet.BroadcastRawTransaction(signedSwapTxWithGasRaw);
       break;
     } catch (error) {
