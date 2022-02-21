@@ -258,7 +258,7 @@ process.on("unhandledRejection", (error) => {
               }
             } else {
               console.log(
-                `HODL (Current Price: $${targetTokenCurrentPrice}, Slippage: ${actualSlippage.toFixed(
+                `HOLD (Current Price: $${targetTokenCurrentPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
@@ -269,7 +269,7 @@ process.on("unhandledRejection", (error) => {
             }
           } else {
             console.log(
-              `HODL (Current Price: $${targetTokenCurrentPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
+              `HOLD (Current Price: $${targetTokenCurrentPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
             );
           }
         } else if (currentStatus === "WAITING_TO_SELL") {
@@ -451,7 +451,7 @@ process.on("unhandledRejection", (error) => {
               }
             } else {
               console.log(
-                `HODL (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Slippage: ${actualSlippage.toFixed(
+                `HOLD (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Slippage: ${actualSlippage.toFixed(
                   2
                 )}%, Slippage Allowed: +${
                   Args.slippagePercent
@@ -466,7 +466,7 @@ process.on("unhandledRejection", (error) => {
             }
           } else {
             console.log(
-              `HODL (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Slippage Allowed: +${
+              `HOLD (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Slippage Allowed: +${
                 Args.slippagePercent
               }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
                 quoteResponseDto.toToken.symbol
