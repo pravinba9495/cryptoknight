@@ -15,7 +15,16 @@ export const Swap = async (
   params: any
 ): Promise<string> => {
   let retries = 0;
-  let nonce = await wallet.GetNonce();
+  let nonce = 0;
+  while (true) {
+    try {
+      nonce = await wallet.GetNonce();
+      break;
+    } catch (error) {
+      console.error(error);
+    }
+    await Wait(2);
+  }
   while (retries < 3) {
     try {
       let swapTxWithGas = {};

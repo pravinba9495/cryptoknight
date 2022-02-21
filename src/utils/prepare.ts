@@ -2,7 +2,6 @@ import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
 import { Approve } from "./approve";
 import { Args } from "./flags";
-import { Revoke } from "./revoke";
 import { Swap } from "./swap";
 import { Wait } from "./wait";
 
@@ -61,7 +60,7 @@ export const PrepareForSwap = async (
             }
             await Wait(5);
           }
-          await Revoke(wallet, router, fromTokenContractAddress);
+          await Approve(wallet, router, fromTokenContractAddress, "0");
           while (true) {
             console.log(`Refreshing router token allowance`);
             const fromTokenAllowance = await router.GetApprovedAllowance(

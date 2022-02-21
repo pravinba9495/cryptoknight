@@ -1,5 +1,6 @@
 import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
+import { Wait } from "./wait";
 
 /**
  * Approve method will approve the required token access for the given router
@@ -16,19 +17,37 @@ export const Approve = async (
   amount: string
 ): Promise<string> => {
   let retries = 0;
-  let nonce = await wallet.GetNonce();
+  let nonce = 0;
+  while (true) {
+    try {
+      nonce = await wallet.GetNonce();
+      break;
+    } catch (error) {
+      console.error(error);
+    }
+    await Wait(2);
+  }
   while (retries < 3) {
     try {
       console.log(
-        `Approving the router to access the required amount of tokens for a swap (Try: ${
-          retries + 1
-        })`
+        `${
+          amount === "0" ? "Revoking" : "Approving"
+        } the router access to the tokens (Try: ${retries + 1})`
       );
       const approveTx = await router.GetApproveTransactionData(
         tokenContractAddress,
         amount
       );
-      const approveTxGas = await wallet.EstimateGas(approveTx);
+      let approveTxGas = 0;
+      while (true) {
+        try {
+          approveTxGas = await wallet.EstimateGas(approveTx);
+          break;
+        } catch (error) {
+          console.error(error);
+        }
+        await Wait(2);
+      }
       const approveTxWithGas = {
         ...approveTx,
         gas: approveTxGas,
@@ -41,15 +60,27 @@ export const Approve = async (
         signedApproveTxWithGasRaw
       );
       nonce += 1;
-      console.log(`Token Approval Transaction has been sent: ${approveTxHash}`);
+      console.log(
+        `Token ${
+          amount === "0" ? "Revoke" : "Approve"
+        } Transaction has been sent: ${approveTxHash}`
+      );
       while (true) {
         console.log("Querying transaction status");
-        const success = await wallet.GetTransactionReceipt(approveTxHash);
-        if (success) {
-          return approveTxHash;
-        } else {
-          return Promise.reject("Approve Transaction failed");
+        try {
+          const success = await wallet.GetTransactionReceipt(approveTxHash);
+          if (success) {
+            return approveTxHash;
+          } else {
+            return Promise.reject(
+              `${amount === "0" ? "Revoke" : "Approve"} Transaction failed`
+            );
+          }
+          break;
+        } catch (error) {
+          console.error(error);
         }
+        await Wait(2);
       }
     } catch (error) {
       console.error(error);
@@ -57,5 +88,7 @@ export const Approve = async (
       retries += 1;
     }
   }
-  return Promise.reject("Approve Transaction failed");
+  return Promise.reject(
+    `${amount === "0" ? "Revoke" : "Approve"}  Transaction failed`
+  );
 };
