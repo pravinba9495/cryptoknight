@@ -15,6 +15,7 @@ export const Swap = async (
   params: any
 ): Promise<string> => {
   let retries = 0;
+  let nonce = await wallet.GetNonce();
   while (retries < 3) {
     try {
       let swapTxWithGas = {};
@@ -32,12 +33,14 @@ export const Swap = async (
           await Wait(5);
         }
       }
-      const signedApproveTxWithGasRaw = await wallet.SignTransaction(
-        swapTxWithGas
-      );
+      const signedApproveTxWithGasRaw = await wallet.SignTransaction({
+        ...swapTxWithGas,
+        nonce: nonce.toString(),
+      });
       const swapTxHash = await router.BroadcastRawTransaction(
         signedApproveTxWithGasRaw
       );
+      nonce += 1;
       console.log(`Token Swap Transaction has been sent: ${swapTxHash}`);
       while (true) {
         console.log("Querying transaction status");

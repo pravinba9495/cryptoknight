@@ -16,6 +16,7 @@ export const Approve = async (
   amount: string
 ): Promise<string> => {
   let retries = 0;
+  let nonce = await wallet.GetNonce();
   while (retries < 3) {
     try {
       console.log(
@@ -32,12 +33,14 @@ export const Approve = async (
         ...approveTx,
         gas: approveTxGas,
       };
-      const signedApproveTxWithGasRaw = await wallet.SignTransaction(
-        approveTxWithGas
-      );
+      const signedApproveTxWithGasRaw = await wallet.SignTransaction({
+        ...approveTxWithGas,
+        nonce: nonce.toString(),
+      });
       const approveTxHash = await router.BroadcastRawTransaction(
         signedApproveTxWithGasRaw
       );
+      nonce += 1;
       console.log(`Token Approval Transaction has been sent: ${approveTxHash}`);
       while (true) {
         console.log("Querying transaction status");

@@ -14,6 +14,7 @@ export const Revoke = async (
   tokenContractAddress: string
 ): Promise<string> => {
   let retries = 0;
+  let nonce = await wallet.GetNonce();
   while (retries < 3) {
     try {
       console.log(
@@ -28,12 +29,14 @@ export const Revoke = async (
         ...revokeTx,
         gas: revokeTxGas,
       };
-      const signedRevokedTxWithGasRaw = await wallet.SignTransaction(
-        revokeTxWithGas
-      );
+      const signedRevokedTxWithGasRaw = await wallet.SignTransaction({
+        ...revokeTxWithGas,
+        nonce: nonce.toString(),
+      });
       const revokeTxHash = await router.BroadcastRawTransaction(
         signedRevokedTxWithGasRaw
       );
+      nonce += 1;
       console.log(
         `Token Access Revoke Transaction has been sent: ${revokeTxHash}`
       );

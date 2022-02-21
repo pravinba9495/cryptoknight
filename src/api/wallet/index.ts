@@ -121,4 +121,16 @@ export class Wallet {
       }
     }
   }
+
+  /**
+   * GetNonce returns a nonce
+   * @returns Promise<number> Number of transactions on the wallet
+   */
+  async GetNonce() {
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
+    );
+    const nonce = await web3.eth.getTransactionCount(this.Address, "latest");
+    return nonce;
+  }
 }
