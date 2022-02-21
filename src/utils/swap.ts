@@ -37,7 +37,7 @@ export const Swap = async (
         ...swapTxWithGas,
         nonce: nonce.toString(),
       });
-      const swapTxHash = await router.BroadcastRawTransaction(
+      const swapTxHash = await wallet.BroadcastRawTransaction(
         signedApproveTxWithGasRaw
       );
       nonce += 1;

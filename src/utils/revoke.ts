@@ -33,7 +33,7 @@ export const Revoke = async (
         ...revokeTxWithGas,
         nonce: nonce.toString(),
       });
-      const revokeTxHash = await router.BroadcastRawTransaction(
+      const revokeTxHash = await wallet.BroadcastRawTransaction(
         signedRevokedTxWithGasRaw
       );
       nonce += 1;
