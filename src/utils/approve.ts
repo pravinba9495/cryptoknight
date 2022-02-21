@@ -37,7 +37,7 @@ export const Approve = async (
         ...approveTxWithGas,
         nonce: nonce.toString(),
       });
-      const approveTxHash = await router.BroadcastRawTransaction(
+      const approveTxHash = await wallet.BroadcastRawTransaction(
         signedApproveTxWithGasRaw
       );
       nonce += 1;

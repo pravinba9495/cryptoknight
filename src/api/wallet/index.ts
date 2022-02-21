@@ -133,4 +133,19 @@ export class Wallet {
     const nonce = await web3.eth.getTransactionCount(this.Address, "latest");
     return nonce;
   }
+
+  /**
+   * BroadcastRawTransaction sends the signed transaction to the node
+   * @param transaction Signed Transaction
+   * @returns Promise<string> Hash of the transaction
+   */
+  async BroadcastRawTransaction(transaction: any) {
+    const web3 = new Web3(
+      new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
+    );
+    const { transactionHash } = await web3.eth.sendSignedTransaction(
+      transaction
+    );
+    return transactionHash;
+  }
 }
