@@ -4,7 +4,11 @@ import { Wallet } from "./api/wallet";
 import { Connect } from "./redis";
 import { Args } from "./utils/flags";
 import { PrepareForSwap } from "./utils/prepare";
-import { GetTradeSignal, InitTradingViewTechnicals } from "./utils/puppet";
+import {
+  GetTradeSignal,
+  InitTradingViewTechnicals,
+  IsPuppeteerReady,
+} from "./utils/puppet";
 import { SendMessage } from "./utils/telegram";
 import { Wait } from "./utils/wait";
 
@@ -36,17 +40,21 @@ process.on("unhandledRejection", (error) => {
       stableTokenContractAddress === "" ||
       targetTokenContractAddress === ""
     ) {
-      throw new Error("tokenContractAddress cannot be empty");
+      throw "tokenContractAddress cannot be empty";
     }
 
     InitTradingViewTechnicals(Args.targetTokenTickerKraken, Args.chartInterval);
+    while (true) {
+      if (IsPuppeteerReady()) {
+        break;
+      } else {
+        console.log("Waiting for puppeteer to be ready");
+        await Wait(2);
+      }
+    }
 
     const t = 60;
-    await redis.setEx(
-      "LAST_SIGNAL_UPDATE",
-      t,
-      new Date().getTime().toString()
-    );
+    await redis.setEx("LAST_SIGNAL_UPDATE", t, new Date().getTime().toString());
 
     while (true) {
       try {
@@ -88,7 +96,11 @@ process.on("unhandledRejection", (error) => {
         );
 
         const signal = await GetTradeSignal();
-        if (signal.includes("BUY") || signal.includes("SELL") || signal.includes("WEAK")) {
+        if (
+          signal.includes("BUY") ||
+          signal.includes("SELL") ||
+          signal.includes("WEAK")
+        ) {
           await redis.setEx(
             "LAST_SIGNAL_UPDATE",
             t,
@@ -431,6 +443,7 @@ process.on("unhandledRejection", (error) => {
                 currentStatus = "WAITING_TO_BUY";
               } catch (error) {
                 console.error(error);
+                await SendMessage(Args.botToken, Args.chatId, `Going to exit`);
                 process.exit(1);
               }
             } else {
