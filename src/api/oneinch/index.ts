@@ -162,7 +162,7 @@ export class Router {
       {
         params: {
           tokenAddress,
-          amount,
+          amount: amount === "-1" ? undefined : amount,
         },
         timeout: 5000,
       }
