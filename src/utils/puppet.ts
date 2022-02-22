@@ -48,12 +48,14 @@ export const InitTradingViewTechnicals = async (
           throw "Puppeteer could not fetch trade signals from TradingView";
         }
         const promises: any[] = [];
-        elements.forEach((element) => {
-          promises.push(
-            page.evaluate((e) => {
-              return e.textContent;
-            }, element)
-          );
+        elements.forEach((element, index) => {
+          if (index === 1) {
+            promises.push(
+              page.evaluate((e) => {
+                return e.textContent;
+              }, element)
+            );
+          }
         });
         const signals = await Promise.all(promises);
         isBuy =
@@ -63,10 +65,10 @@ export const InitTradingViewTechnicals = async (
           signals.filter((s) => s.includes("Strong Sell")).length ===
           signals.length;
         signal = isBuy
-          ? "BUY"
+          ? "STRONG BUY"
           : isSell
-          ? "SELL"
-          : `${signals.map((s) => s.toUpperCase()).join(",")}`;
+          ? "STRONG SELL"
+          : `WEAK/${signals[0].toUpperCase()}`;
         isPuppeteerReady = true;
       } catch (error) {
         console.error(error);

@@ -102,8 +102,8 @@ process.on("unhandledRejection", (error) => {
 
         const signal = await GetTradeSignal();
         if (
-          signal.includes("BUY") ||
-          signal.includes("SELL") ||
+          signal.includes("STRONG BUY") ||
+          signal.includes("STRONG SELL") ||
           signal.includes("WEAK")
         ) {
           await redis.setEx(
@@ -166,7 +166,7 @@ process.on("unhandledRejection", (error) => {
           const buyLimitReached = buyLimitPrice >= targetTokenCurrentPrice;
 
           if (
-            (signal === "BUY" && Args.mode === "AUTO") ||
+            (signal === "STRONG BUY" && Args.mode === "AUTO") ||
             (buyLimitReached && Args.mode === "MANUAL")
           ) {
             // Liquidity provider fee: 0.5% approx
@@ -351,7 +351,7 @@ process.on("unhandledRejection", (error) => {
           const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
           if (
-            (signal === "SELL" &&
+            (signal === "STRONG SELL" &&
               Args.mode === "AUTO" &&
               profitOrLossPercent >= Args.minProfitPercent) ||
             ((sellLimitReached || stopLimitReached) && Args.mode === "MANUAL")
