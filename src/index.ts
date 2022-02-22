@@ -2,6 +2,7 @@ import { Alternative } from "./api/alternative";
 import { Kraken } from "./api/kraken";
 import { Router } from "./api/oneinch";
 import { Wallet } from "./api/wallet";
+import { InitWeb3Client } from "./api/web3";
 import { Connect } from "./redis";
 import { Approve } from "./utils/approve";
 import { Args } from "./utils/flags";
@@ -31,6 +32,8 @@ process.on("unhandledRejection", (error) => {
     const router = new Router(Args.chainId);
     let currentStatus = "UNKNOWN";
 
+    await InitWeb3Client(Args.chainId);
+
     const routerAddress = await router.GetContractAddress();
     const tokens = await router.GetSupportedTokens();
 
@@ -55,7 +58,7 @@ process.on("unhandledRejection", (error) => {
       }
     }
 
-    const t = 60;
+    const t = 5 * 60;
     await redis.setEx("LAST_SIGNAL_UPDATE", t, new Date().getTime().toString());
 
     let preAuthDone = false;

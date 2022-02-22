@@ -1,7 +1,6 @@
-import Web3 from "web3";
-import { GetRpcURLByChainID } from "../../networks";
 import { timeout } from "../../utils/timeout";
 import { Wait } from "../../utils/wait";
+import { GetWeb3Client, GetWeb3ContractClient } from "../web3";
 
 /**
  * ERC20 minimal ABI
@@ -46,10 +45,7 @@ export class Wallet {
    * @returns Promise<bigint> Wallet balance
    */
   async GetBalance(): Promise<bigint> {
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
-    );
-    const balance = await web3.eth.getBalance(this.Address);
+    const balance = await GetWeb3Client().eth.getBalance(this.Address);
     return BigInt(balance);
   }
 
@@ -60,10 +56,7 @@ export class Wallet {
    */
   async GetTokenBalance(tokenContractAddress: string): Promise<bigint> {
     const fn = async () => {
-      const web3 = new Web3(
-        new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
-      );
-      const contract = new web3.eth.Contract(ERC20Abi, tokenContractAddress);
+      const contract = GetWeb3ContractClient(ERC20Abi, tokenContractAddress);
       const balance = await contract.methods.balanceOf(this.Address).call();
       return BigInt(balance);
     };
@@ -77,10 +70,7 @@ export class Wallet {
    * @returns Promise<string> Raw transaction
    */
   async SignTransaction(transaction: any): Promise<string> {
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
-    );
-    const tx: any = await web3.eth.accounts.signTransaction(
+    const tx: any = await GetWeb3Client().eth.accounts.signTransaction(
       transaction,
       this.Key
     );
@@ -93,10 +83,7 @@ export class Wallet {
    * @returns Estimated gas amount
    */
   async EstimateGas(transaction: any): Promise<number> {
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
-    );
-    const gas: number = await web3.eth.estimateGas({
+    const gas: number = await GetWeb3Client().eth.estimateGas({
       ...transaction,
       from: this.Address,
     });
@@ -109,11 +96,8 @@ export class Wallet {
    * @returns Promise<boolean>
    */
   async GetTransactionReceipt(txHash: string): Promise<boolean> {
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
-    );
     while (true) {
-      const receipt = await web3.eth.getTransactionReceipt(txHash);
+      const receipt = await GetWeb3Client().eth.getTransactionReceipt(txHash);
       if (receipt != null) {
         return receipt.status;
       } else {
@@ -127,10 +111,10 @@ export class Wallet {
    * @returns Promise<number> Number of transactions on the wallet
    */
   async GetNonce() {
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
+    const nonce = await GetWeb3Client().eth.getTransactionCount(
+      this.Address,
+      "pending"
     );
-    const nonce = await web3.eth.getTransactionCount(this.Address, "pending");
     return nonce;
   }
 
@@ -139,10 +123,7 @@ export class Wallet {
    * @returns Promise<string> Gas Price
    */
   async SuggestGasPrice() {
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
-    );
-    const gasPrice = await web3.eth.getGasPrice();
+    const gasPrice = await GetWeb3Client().eth.getGasPrice();
     return gasPrice;
   }
 
@@ -152,10 +133,7 @@ export class Wallet {
    * @returns Promise<string> Hash of the transaction
    */
   async BroadcastRawTransaction(transaction: any) {
-    const web3 = new Web3(
-      new Web3.providers.HttpProvider(GetRpcURLByChainID(this.ChainID))
-    );
-    const { transactionHash } = await web3.eth.sendSignedTransaction(
+    const { transactionHash } = await GetWeb3Client().eth.sendSignedTransaction(
       transaction
     );
     return transactionHash;
