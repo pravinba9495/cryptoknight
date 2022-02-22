@@ -130,6 +130,13 @@ process.on("unhandledRejection", (error) => {
                 "BuyLimitPrice"
               )
             ) || 0;
+          const buyBackLimitPrice =
+            Number(
+              await redis.hGet(
+                `${Args.stableToken}_${Args.targetToken}`,
+                "BuyBackLimitPrice"
+              )
+            ) || 9999999999;
           const params = {
             fromTokenAddress: stableTokenContractAddress,
             toTokenAddress: targetTokenContractAddress,
@@ -164,10 +171,12 @@ process.on("unhandledRejection", (error) => {
           );
 
           const buyLimitReached = buyLimitPrice >= targetTokenCurrentPrice;
+          const buyBackLimitReached =
+            targetTokenCurrentPrice >= buyBackLimitPrice;
 
           if (
             (signal === "STRONG BUY" && Args.mode === "AUTO") ||
-            (buyLimitReached && Args.mode === "MANUAL")
+            ((buyLimitReached || buyBackLimitReached) && Args.mode === "MANUAL")
           ) {
             // Liquidity provider fee: 0.5% approx
             if (actualSlippage <= Args.slippagePercent + 0.5) {
@@ -202,6 +211,11 @@ process.on("unhandledRejection", (error) => {
                   `${Args.stableToken}_${Args.targetToken}`,
                   "StopLimitPrice",
                   0
+                );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "BuyBackLimitPrice",
+                  9999999999
                 );
                 await redis.hSet(
                   `${Args.stableToken}_${Args.targetToken}`,
@@ -393,6 +407,11 @@ process.on("unhandledRejection", (error) => {
                   `${Args.stableToken}_${Args.targetToken}`,
                   "StopLimitPrice",
                   0
+                );
+                await redis.hSet(
+                  `${Args.stableToken}_${Args.targetToken}`,
+                  "BuyBackLimitPrice",
+                  9999999999
                 );
                 await redis.hSet(
                   `${Args.stableToken}_${Args.targetToken}`,
