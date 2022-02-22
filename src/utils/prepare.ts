@@ -60,18 +60,20 @@ export const PrepareForSwap = async (
             }
             await Wait(5);
           }
-          await Approve(wallet, router, fromTokenContractAddress, "0");
-          while (true) {
-            console.log(`Refreshing router token allowance`);
-            const fromTokenAllowance = await router.GetApprovedAllowance(
-              fromTokenContractAddress,
-              Args.publicKey
-            );
-            if (fromTokenAllowance === BigInt(0)) {
-              console.log("Router approval is revoked successfully");
-              break;
+          if (!Args.preAuth) {
+            await Approve(wallet, router, fromTokenContractAddress, "0");
+            while (true) {
+              console.log(`Refreshing router token allowance`);
+              const fromTokenAllowance = await router.GetApprovedAllowance(
+                fromTokenContractAddress,
+                Args.publicKey
+              );
+              if (fromTokenAllowance === BigInt(0)) {
+                console.log("Router approval is revoked successfully");
+                break;
+              }
+              await Wait(5);
             }
-            await Wait(5);
           }
           break;
         } else {

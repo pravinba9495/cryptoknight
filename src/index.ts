@@ -3,6 +3,7 @@ import { Kraken } from "./api/kraken";
 import { Router } from "./api/oneinch";
 import { Wallet } from "./api/wallet";
 import { Connect } from "./redis";
+import { Approve } from "./utils/approve";
 import { Args } from "./utils/flags";
 import { PrepareForSwap } from "./utils/prepare";
 import {
@@ -57,6 +58,7 @@ process.on("unhandledRejection", (error) => {
     const t = 60;
     await redis.setEx("LAST_SIGNAL_UPDATE", t, new Date().getTime().toString());
 
+    let preAuthDone = false;
     while (true) {
       try {
         console.log(`\n\n${new Date()}\n`);
@@ -75,6 +77,43 @@ process.on("unhandledRejection", (error) => {
         const targetTokenBalance = await wallet.GetTokenBalance(
           targetTokenContractAddress
         );
+
+        if (Args.preAuth && !preAuthDone) {
+          while (true) {
+            try {
+              const stableTokenAllowance = await router.GetApprovedAllowance(
+                stableTokenContractAddress,
+                wallet.Address
+              );
+              const targetTokenAllowance = await router.GetApprovedAllowance(
+                targetTokenContractAddress,
+                wallet.Address
+              );
+              if (stableTokenAllowance >= stableTokenBalance) {
+                console.log(
+                  `Router already preauthorized to spend ${Args.stableToken}`
+                );
+              } else {
+                console.log(`Preauthorizing router for ${Args.stableToken}`);
+                await Approve(wallet, router, stableTokenContractAddress, "-1");
+              }
+              if (targetTokenAllowance >= targetTokenBalance) {
+                console.log(
+                  `Router already preauthorized to spend ${Args.targetToken}`
+                );
+              } else {
+                console.log(`Preauthorizing router for ${Args.targetToken}`);
+                await Approve(wallet, router, targetTokenContractAddress, "-1");
+              }
+              preAuthDone = true;
+              break;
+            } catch (error) {
+              console.error(error);
+            } finally {
+              await Wait(2);
+            }
+          }
+        }
 
         const gasPrice = await wallet.SuggestGasPrice();
         console.log(

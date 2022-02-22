@@ -13,6 +13,7 @@ export const Args = {
   password: ENV.PASSWORD || "kryptonite",
   redisAddress: ENV.REDIS_ADDRESS || "",
   chainId: Number(ENV.CHAIN_ID || 137),
+  preAuth: Boolean(ENV.PRE_AUTH || false),
   minProfitPercent: Number(ENV.MIN_PROFIT_PERCENT || 1),
   slippagePercent: Number(ENV.SLIPPAGE_PERCENT || 1),
 };
