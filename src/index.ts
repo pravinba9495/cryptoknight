@@ -1,3 +1,4 @@
+import { Alternative } from "./api/alternative";
 import { Kraken } from "./api/kraken";
 import { Router } from "./api/oneinch";
 import { Wallet } from "./api/wallet";
@@ -78,6 +79,12 @@ process.on("unhandledRejection", (error) => {
         const gasPrice = await wallet.SuggestGasPrice();
         console.log(
           `Current Gas Price (Gwei): ${Number(gasPrice) / 1000000000}`
+        );
+
+        const { fearGreedIndex, fearGreedIndexClassification } =
+          await Alternative.GetCryptoFearIndex();
+        console.log(
+          `Current Fear/Greed Level: ${fearGreedIndexClassification} (${fearGreedIndex})`
         );
 
         if (
