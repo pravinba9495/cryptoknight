@@ -15,6 +15,8 @@ import {
 import { SendMessage } from "./utils/telegram";
 import { Wait } from "./utils/wait";
 
+let LAST_TELEGRAM_SIGNAL = "";
+
 process.on("uncaughtException", (error) => {
   console.error(error);
   process.exit(1);
@@ -160,6 +162,16 @@ process.on("unhandledRejection", (error) => {
             t,
             new Date().getTime().toString()
           );
+        }
+
+        if (
+          (signal.includes("STRONG BUY") &&
+            LAST_TELEGRAM_SIGNAL !== "STRONG BUY") ||
+          (signal.includes("STRONG SELL") &&
+            LAST_TELEGRAM_SIGNAL !== "STRONG SELL")
+        ) {
+          LAST_TELEGRAM_SIGNAL = signal;
+          await SendMessage(Args.botToken, Args.chatId, signal);
         }
 
         const exists = await redis.exists("LAST_SIGNAL_UPDATE");
