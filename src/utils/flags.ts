@@ -18,4 +18,5 @@ export const Args = {
   buyBackLimitPercent: Math.abs(Number(ENV.BUY_BACK_LIMIT_PERCENT || 1)),
   maxStopLimitTriggers: Math.abs(Number(ENV.MAX_STOP_LOSS_TRIGGERS || 5)),
   slippagePercent: Number(ENV.SLIPPAGE_PERCENT || 1),
+  port: Number(ENV.PORT || 8080),
 };
