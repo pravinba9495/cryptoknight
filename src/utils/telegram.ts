@@ -25,3 +25,29 @@ export const SendMessage = async (
       });
   });
 };
+
+/**
+ * SetWebhook sets the webhook endpoint for the telegram bot
+ * @param token Bot token
+ * @param url URL of the endpoint
+ * @returns Promise<any> Response from the server
+ */
+export const SetWebhook = async (token: string, url: string): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    Axios.post(`https://api.telegram.org/bot${token}/setWebhook`, {
+      url,
+      allowed_updates: ["message"],
+      drop_pending_updates: true,
+    })
+      .then((response) => {
+        if (response.data && response.data.ok) {
+          resolve(response.data);
+        } else {
+          reject(response.data);
+        }
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};

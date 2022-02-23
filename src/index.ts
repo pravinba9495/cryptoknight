@@ -13,7 +13,7 @@ import {
   InitTradingViewTechnicals,
   IsPuppeteerReady,
 } from "./utils/puppet";
-import { SendMessage } from "./utils/telegram";
+import { SendMessage, SetWebhook } from "./utils/telegram";
 import { Wait } from "./utils/wait";
 
 let LAST_TELEGRAM_SIGNAL = "";
@@ -69,6 +69,7 @@ process.on("unhandledRejection", (error) => {
     await redis.setEx("LAST_SIGNAL_UPDATE", t, new Date().getTime().toString());
 
     const url = await InitNgRok(Args.port);
+    await SetWebhook(Args.botToken, url);
     console.log(`ngrok tunnel running at: ${url}`);
 
     let preAuthDone = false;
