@@ -1,6 +1,4 @@
 import puppeteer from "puppeteer";
-import { Args } from "./flags";
-import { SendMessage } from "./telegram";
 import { timeout } from "./timeout";
 import { Wait } from "./wait";
 
@@ -73,11 +71,6 @@ export const InitTradingViewTechnicals = async (
       } catch (error) {
         console.error(error);
         signal = "ERROR";
-        try {
-          await SendMessage(Args.botToken, Args.chatId, `Puppeteer error`);
-        } catch (error) {
-          console.error(error);
-        }
       }
       await Wait(5);
     }
@@ -86,7 +79,6 @@ export const InitTradingViewTechnicals = async (
     console.error(error);
   } finally {
     try {
-      await SendMessage(Args.botToken, Args.chatId, `Puppeteer error`);
       await browser.close();
     } catch (error) {
       console.error(error);

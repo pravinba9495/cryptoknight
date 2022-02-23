@@ -428,7 +428,9 @@ process.on("unhandledRejection", (error) => {
           if (
             (signal === "STRONG SELL" &&
               Args.mode === "AUTO" &&
-              profitOrLossPercent >= Args.minProfitPercent) ||
+              (profitOrLossPercent >= 0
+                ? profitOrLossPercent >= Args.minProfitPercent
+                : Math.abs(profitOrLossPercent) <= Args.maxLossPercent)) ||
             ((sellLimitReached || stopLimitReached) && Args.mode === "MANUAL")
           ) {
             // Liquidity provider fee: 0.5% approx
@@ -450,7 +452,7 @@ process.on("unhandledRejection", (error) => {
                 await SendMessage(
                   Args.botToken,
                   Args.chatId,
-                  `Signal Received: ${signal}`
+                  `Signal Received: ${signal}, Profit/Loss: ${profitOrLossPercent}%`
                 );
                 await PrepareForSwap(
                   router,
