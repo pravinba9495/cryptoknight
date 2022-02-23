@@ -16,6 +16,7 @@ import { SendMessage } from "./utils/telegram";
 import { Wait } from "./utils/wait";
 
 let LAST_TELEGRAM_SIGNAL = "";
+let STOP_LIMIT_TRIGGERS = 0;
 
 process.on("uncaughtException", (error) => {
   console.error(error);
@@ -236,7 +237,8 @@ process.on("unhandledRejection", (error) => {
             targetTokenCurrentPrice >= buyBackLimitPrice;
 
           if (
-            (signal === "STRONG BUY" && Args.mode === "AUTO") ||
+            ((signal === "STRONG BUY" || buyBackLimitReached) &&
+              Args.mode === "AUTO") ||
             ((buyLimitReached || buyBackLimitReached) && Args.mode === "MANUAL")
           ) {
             // Liquidity provider fee: 0.5% approx
@@ -316,6 +318,14 @@ process.on("unhandledRejection", (error) => {
                           100) /
                         (stableTokenAmnt * stableTokenCurrentPrice),
                     };
+                    if (Args.mode == "AUTO") {
+                      await redis.hSet(
+                        `${Args.stableToken}_${Args.targetToken}`,
+                        "StopLimitPrice",
+                        ((100 - Args.stopLimitPercent) / 100) *
+                          targetTokenCurrentPrice
+                      );
+                    }
                     await redis.lPush(
                       `${Args.stableToken}_${Args.targetToken}_SWAP_HISTORY`,
                       JSON.stringify(trade)
@@ -426,11 +436,8 @@ process.on("unhandledRejection", (error) => {
           const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
           if (
-            (signal === "STRONG SELL" &&
-              Args.mode === "AUTO" &&
-              (profitOrLossPercent >= 0
-                ? profitOrLossPercent >= Args.minProfitPercent
-                : Math.abs(profitOrLossPercent) <= Args.maxLossPercent)) ||
+            ((signal === "STRONG SELL" || stopLimitReached) &&
+              Args.mode === "AUTO") ||
             ((sellLimitReached || stopLimitReached) && Args.mode === "MANUAL")
           ) {
             // Liquidity provider fee: 0.5% approx
@@ -524,6 +531,24 @@ process.on("unhandledRejection", (error) => {
                       Args.chatId,
                       JSON.stringify(trade, null, 2)
                     );
+                    if (Args.mode == "AUTO") {
+                      await redis.hSet(
+                        `${Args.stableToken}_${Args.targetToken}`,
+                        "BuyBackLimitPrice",
+                        ((100 + Args.buyBackLimitPercent) / 100) *
+                          targetTokenCurrentPrice
+                      );
+                      STOP_LIMIT_TRIGGERS += 1;
+                      if (STOP_LIMIT_TRIGGERS > Args.maxStopLimitTriggers) {
+                        console.error(`Too many stop loss triggers`);
+                        await SendMessage(
+                          Args.botToken,
+                          Args.chatId,
+                          `Too many stop loss triggers`
+                        );
+                        process.exit(1);
+                      }
+                    }
                     break;
                   } catch (error) {
                     console.error(error);
