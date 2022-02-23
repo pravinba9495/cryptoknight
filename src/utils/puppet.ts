@@ -11,6 +11,7 @@ export const InitTradingViewTechnicals = async (
   interval: string
 ) => {
   try {
+    signal = "UNKNOWN";
     browser = await puppeteer.launch({
       headless: true,
       defaultViewport: {
@@ -37,7 +38,6 @@ export const InitTradingViewTechnicals = async (
       timeout: 10000,
     });
     while (true) {
-      signal = "UNKNOWN";
       try {
         await page.click(`button[id="${interval}"]`);
         await Wait(2);
