@@ -242,7 +242,11 @@ process.on("unhandledRejection", (error) => {
             ((buyLimitReached || buyBackLimitReached) && Args.mode === "MANUAL")
           ) {
             // Liquidity provider fee: 0.5% approx
-            if (actualSlippage <= Args.slippagePercent + 0.5) {
+            if (
+              actualSlippage <= Args.slippagePercent + 0.5 ||
+              buyLimitReached ||
+              buyBackLimitReached
+            ) {
               console.log(
                 `BUY (Current Price: $${targetTokenCurrentPrice}, Slippage: ${actualSlippage.toFixed(
                   2
@@ -441,7 +445,11 @@ process.on("unhandledRejection", (error) => {
             ((sellLimitReached || stopLimitReached) && Args.mode === "MANUAL")
           ) {
             // Liquidity provider fee: 0.5% approx
-            if (actualSlippage <= Args.slippagePercent + 0.5) {
+            if (
+              actualSlippage <= Args.slippagePercent + 0.5 ||
+              stopLimitReached ||
+              sellLimitReached
+            ) {
               console.log(
                 `SELL (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Slippage: ${actualSlippage.toFixed(
                   2
