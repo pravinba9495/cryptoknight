@@ -6,6 +6,7 @@ import { InitWeb3Client } from "./api/web3";
 import { Connect } from "./redis";
 import { Approve } from "./utils/approve";
 import { Args } from "./utils/flags";
+import { InitNgRok } from "./utils/ngrok";
 import { PrepareForSwap } from "./utils/prepare";
 import {
   GetTradeSignal,
@@ -66,6 +67,9 @@ process.on("unhandledRejection", (error) => {
 
     const t = 5 * 60;
     await redis.setEx("LAST_SIGNAL_UPDATE", t, new Date().getTime().toString());
+
+    const url = await InitNgRok(Args.port);
+    console.log(`ngrok tunnel running at: ${url}`);
 
     let preAuthDone = false;
     while (true) {
