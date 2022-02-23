@@ -31,6 +31,9 @@ process.on("unhandledRejection", (error) => {
 (async () => {
   try {
     const redis = await Connect(Args.redisAddress);
+
+    await redis.del(`${Args.stableToken}_${Args.targetToken}`);
+
     const wallet = new Wallet(Args.publicKey, Args.privateKey, Args.chainId);
     const router = new Router(Args.chainId);
     let currentStatus = "UNKNOWN";
