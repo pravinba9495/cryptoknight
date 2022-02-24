@@ -616,7 +616,7 @@ process.on("unhandledRejection", (error) => {
               } catch (error) {
                 console.error(error);
                 await SendMessage(Args.botToken, Args.chatId, `Going to exit`);
-                process.exit(1);
+                process.exit(0);
               }
             } else {
               console.log(
