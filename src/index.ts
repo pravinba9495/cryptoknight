@@ -72,12 +72,23 @@ process.on("unhandledRejection", (error) => {
     await SetWebhook(Args.botToken, url);
     console.log(`ngrok tunnel running at: ${url}`);
 
-    let stableTokenBalance = await wallet.GetTokenBalance(
-      stableTokenContractAddress
-    );
-    let targetTokenBalance = await wallet.GetTokenBalance(
-      targetTokenContractAddress
-    );
+    let stableTokenBalance = BigInt(0);
+    let targetTokenBalance = BigInt(0);
+    while (true) {
+      try {
+        stableTokenBalance = await wallet.GetTokenBalance(
+          stableTokenContractAddress
+        );
+        targetTokenBalance = await wallet.GetTokenBalance(
+          targetTokenContractAddress
+        );
+        break;
+      } catch (error) {
+        console.error(error);
+      } finally {
+        await Wait(2);
+      }
+    }
 
     let preAuthDone = false;
     while (true) {
