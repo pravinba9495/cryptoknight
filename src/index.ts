@@ -18,6 +18,7 @@ import { Wait } from "./utils/wait";
 
 let LAST_TELEGRAM_SIGNAL = "";
 let STOP_LIMIT_TRIGGERS = 0;
+let ORIGINAL_MODE = Args.mode;
 
 process.on("uncaughtException", (error) => {
   console.error(error);
@@ -159,6 +160,16 @@ process.on("unhandledRejection", (error) => {
               Args.botToken,
               Args.chatId,
               `Switching mode to MANUAL due to fear in the market`
+            );
+            await redis.del(`${Args.stableToken}_${Args.targetToken}`);
+          }
+        } else {
+          if (Args.mode !== ORIGINAL_MODE) {
+            Args.mode = ORIGINAL_MODE;
+            await SendMessage(
+              Args.botToken,
+              Args.chatId,
+              `Switching mode to ${Args.mode} due to hope in the market`
             );
             await redis.del(`${Args.stableToken}_${Args.targetToken}`);
           }
