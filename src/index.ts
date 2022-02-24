@@ -143,6 +143,7 @@ process.on("unhandledRejection", (error) => {
         if (fearGreedIndex <= Args.switchModeLimit) {
           if (Args.mode !== "MANUAL") {
             Args.mode = "MANUAL";
+            await SendMessage(Args.botToken, Args.chatId, `Switching mode to MANUAL due to fear in the market`);
             await redis.del(`${Args.stableToken}_${Args.targetToken}`);
           }
         }
