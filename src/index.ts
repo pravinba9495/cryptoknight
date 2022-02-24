@@ -72,6 +72,13 @@ process.on("unhandledRejection", (error) => {
     await SetWebhook(Args.botToken, url);
     console.log(`ngrok tunnel running at: ${url}`);
 
+    let stableTokenBalance = await wallet.GetTokenBalance(
+      stableTokenContractAddress
+    );
+    let targetTokenBalance = await wallet.GetTokenBalance(
+      targetTokenContractAddress
+    );
+
     let preAuthDone = false;
     while (true) {
       try {
@@ -84,12 +91,6 @@ process.on("unhandledRejection", (error) => {
         );
         console.log(
           `Target Token Contract Address (${Args.targetToken}): ${targetTokenContractAddress}`
-        );
-        const stableTokenBalance = await wallet.GetTokenBalance(
-          stableTokenContractAddress
-        );
-        const targetTokenBalance = await wallet.GetTokenBalance(
-          targetTokenContractAddress
         );
 
         if (Args.preAuth && !preAuthDone) {
@@ -143,7 +144,11 @@ process.on("unhandledRejection", (error) => {
         if (fearGreedIndex <= Args.switchModeLimit) {
           if (Args.mode !== "MANUAL") {
             Args.mode = "MANUAL";
-            await SendMessage(Args.botToken, Args.chatId, `Switching mode to MANUAL due to fear in the market`);
+            await SendMessage(
+              Args.botToken,
+              Args.chatId,
+              `Switching mode to MANUAL due to fear in the market`
+            );
             await redis.del(`${Args.stableToken}_${Args.targetToken}`);
           }
         }
@@ -360,6 +365,21 @@ process.on("unhandledRejection", (error) => {
                   }
                 }
                 currentStatus = "WAITING_TO_SELL";
+                while (true) {
+                  try {
+                    stableTokenBalance = await wallet.GetTokenBalance(
+                      stableTokenContractAddress
+                    );
+                    targetTokenBalance = await wallet.GetTokenBalance(
+                      targetTokenContractAddress
+                    );
+                    break;
+                  } catch (error) {
+                    console.error(error);
+                  } finally {
+                    await Wait(2);
+                  }
+                }
               } catch (error) {
                 console.error(error);
                 process.exit(1);
@@ -578,6 +598,21 @@ process.on("unhandledRejection", (error) => {
                   }
                 }
                 currentStatus = "WAITING_TO_BUY";
+                while (true) {
+                  try {
+                    stableTokenBalance = await wallet.GetTokenBalance(
+                      stableTokenContractAddress
+                    );
+                    targetTokenBalance = await wallet.GetTokenBalance(
+                      targetTokenContractAddress
+                    );
+                    break;
+                  } catch (error) {
+                    console.error(error);
+                  } finally {
+                    await Wait(2);
+                  }
+                }
               } catch (error) {
                 console.error(error);
                 await SendMessage(Args.botToken, Args.chatId, `Going to exit`);
