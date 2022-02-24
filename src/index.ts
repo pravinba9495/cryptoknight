@@ -140,6 +140,13 @@ process.on("unhandledRejection", (error) => {
           `Current Fear/Greed Level: ${fearGreedIndexClassification} (${fearGreedIndex})`
         );
 
+        if (fearGreedIndex <= Args.switchModeLimit) {
+          if (Args.mode !== "MANUAL") {
+            Args.mode = "MANUAL";
+            await redis.del(`${Args.stableToken}_${Args.targetToken}`);
+          }
+        }
+
         if (
           stableTokenBalance !== BigInt(0) &&
           targetTokenBalance === BigInt(0)
@@ -174,14 +181,12 @@ process.on("unhandledRejection", (error) => {
         }
 
         if (
-          (signal.includes("STRONG BUY") &&
-            LAST_TELEGRAM_SIGNAL !== "STRONG BUY") ||
-          (signal.includes("STRONG SELL") &&
-            LAST_TELEGRAM_SIGNAL !== "STRONG SELL")
+          (signal.includes("STRONG BUY") || signal.includes("STRONG SELL")) &&
+          LAST_TELEGRAM_SIGNAL !== signal
         ) {
-          LAST_TELEGRAM_SIGNAL = signal;
           await SendMessage(Args.botToken, Args.chatId, signal);
         }
+        LAST_TELEGRAM_SIGNAL = signal;
 
         const exists = await redis.exists("LAST_SIGNAL_UPDATE");
         if (exists !== 1) {
