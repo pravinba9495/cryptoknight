@@ -19,4 +19,5 @@ export const Args = {
   maxStopLimitTriggers: Math.abs(Number(ENV.MAX_STOP_LOSS_TRIGGERS || 5)),
   slippagePercent: Number(ENV.SLIPPAGE_PERCENT || 1),
   port: Number(ENV.PORT || 8080),
+  switchModeLimit: Number(ENV.SWITCH_MODE_LIMIT || 50),
 };
