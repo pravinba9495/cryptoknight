@@ -14,7 +14,7 @@ export const Args = {
   redisAddress: ENV.REDIS_ADDRESS || "",
   chainId: Number(ENV.CHAIN_ID || 137),
   preAuth: Boolean(ENV.PRE_AUTH || false),
-  trailingStop: Boolean(ENV.TRAILING_STOP || true),
+  trailingStop: Boolean(ENV.TRAILING_STOP || false),
   minProfitPercent: Math.abs(Number(ENV.MIN_PROFIT_PERCENT || 5)),
   stopLimitPercent: Math.abs(Number(ENV.STOP_LIMIT_PERCENT || 10)),
   slippagePercent: Number(ENV.SLIPPAGE_PERCENT || 1),
