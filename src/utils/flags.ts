@@ -20,4 +20,5 @@ export const Args = {
   slippagePercent: Number(ENV.SLIPPAGE_PERCENT || 1),
   port: Number(ENV.PORT || 8080),
   switchModeLimit: Number(ENV.SWITCH_MODE_LIMIT || 25),
+  trace: Boolean(ENV.TRACE || false),
 };

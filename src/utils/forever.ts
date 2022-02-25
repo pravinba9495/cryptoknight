@@ -1,3 +1,4 @@
+import { Args } from "./flags";
 import { Wait } from "./wait";
 
 export const Forever = async (
@@ -22,7 +23,7 @@ export const Forever = async (
       process.exit(1);
     }
   }
-  if (retries > 0) {
+  if (retries > 0 && Args.trace) {
     console.log(`Retries: ${retries}, ${callback.toString()}`);
   }
   return result;
