@@ -7,10 +7,16 @@ export class Telegram {
     message: string
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
-      Axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
-        chat_id: chatId,
-        text: message,
-      })
+      Axios.post(
+        `https://api.telegram.org/bot${token}/sendMessage`,
+        {
+          chat_id: chatId,
+          text: message,
+        },
+        {
+          timeout: 5000,
+        }
+      )
         .then((response) => {
           resolve(response);
         })
@@ -22,11 +28,17 @@ export class Telegram {
 
   static SetWebhook = async (token: string, url: string): Promise<any> => {
     return new Promise((resolve, reject) => {
-      Axios.post(`https://api.telegram.org/bot${token}/setWebhook`, {
-        url,
-        allowed_updates: ["message"],
-        drop_pending_updates: true,
-      })
+      Axios.post(
+        `https://api.telegram.org/bot${token}/setWebhook`,
+        {
+          url,
+          allowed_updates: ["message"],
+          drop_pending_updates: true,
+        },
+        {
+          timeout: 5000,
+        }
+      )
         .then((response) => {
           if (response.data && response.data.ok) {
             resolve(response.data);

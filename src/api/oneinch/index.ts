@@ -55,7 +55,10 @@ export class Router {
 
   async GetHealthStatus(): Promise<boolean> {
     return Axios.get<boolean>(
-      `https://api.1inch.io/v4.0/${this.ChainID}/healthcheck`
+      `https://api.1inch.io/v4.0/${this.ChainID}/healthcheck`,
+      {
+        timeout: 5000,
+      }
     )
       .then(() => {
         return Promise.resolve(true);
@@ -71,7 +74,10 @@ export class Router {
 
   async GetContractAddress(): Promise<string> {
     return Axios.get<string>(
-      `https://api.1inch.io/v4.0/${this.ChainID}/approve/spender`
+      `https://api.1inch.io/v4.0/${this.ChainID}/approve/spender`,
+      {
+        timeout: 5000,
+      }
     )
       .then((response) => response.data)
       .then((response: any) => response.address as string)
@@ -86,7 +92,10 @@ export class Router {
 
   async GetSupportedTokens(): Promise<Token[]> {
     return Axios.get<Token[]>(
-      `https://api.1inch.io/v4.0/${this.ChainID}/tokens`
+      `https://api.1inch.io/v4.0/${this.ChainID}/tokens`,
+      {
+        timeout: 5000,
+      }
     )
       .then((response) => response.data)
       .then((response: any) => {
@@ -159,6 +168,8 @@ export class Router {
       `https://tx-gateway.1inch.io/v1.1/${this.ChainID}/broadcast`,
       {
         rawTransaction,
+      },
+      {
         timeout: 5000,
       }
     )
