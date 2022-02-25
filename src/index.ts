@@ -53,6 +53,7 @@ process.on("unhandledRejection", async (error) => {
 
 let LAST_TELEGRAM_SIGNAL = "";
 const ORIGINAL_MODE = Args.mode;
+const START_TIME = new Date().getTime();
 
 (async () => {
   try {
@@ -808,6 +809,11 @@ const ORIGINAL_MODE = Args.mode;
       // Here
       const end = new Date().getTime();
       console.log(`\nLoop Time: ${(end - start) / 1000} (sec)`);
+      console.log(
+        `Running For: ${Math.floor(
+          (end - START_TIME) / (1000 * 60 * 60 * 24)
+        )} (days)`
+      );
       await Wait(10);
     }
     // ====== END (Loop) ======= //
