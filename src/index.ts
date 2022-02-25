@@ -285,7 +285,17 @@ const START_TIME = new Date().getTime();
         LAST_TELEGRAM_SIGNAL !== signal
       ) {
         await Forever(async () => {
-          await Telegram.SendMessage(Args.botToken, Args.chatId, signal);
+          const notify =
+            (signal.includes("STRONG BUY") &&
+              currentStatus === "WAITING_TO_BUY") ||
+            (signal.includes("STRONG SELL") &&
+              currentStatus === "WAITING_TO_SELL");
+          await Telegram.SendMessage(
+            Args.botToken,
+            Args.chatId,
+            signal,
+            notify
+          );
         }, 2);
       }
       LAST_TELEGRAM_SIGNAL = signal;

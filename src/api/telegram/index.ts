@@ -4,7 +4,8 @@ export class Telegram {
   static SendMessage = async (
     token: string,
     chatId: string,
-    message: string
+    message: string,
+    notify: boolean = true
   ): Promise<any> => {
     return new Promise((resolve, reject) => {
       Axios.post(
@@ -12,6 +13,7 @@ export class Telegram {
         {
           chat_id: chatId,
           text: message,
+          disable_notification: !notify,
         },
         {
           timeout: 5000,
