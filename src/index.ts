@@ -54,6 +54,7 @@ process.on("unhandledRejection", async (error) => {
 let LAST_TELEGRAM_SIGNAL = "";
 const ORIGINAL_MODE = Args.mode;
 const START_TIME = new Date().getTime();
+let lastDate = 0;
 
 (async () => {
   try {
@@ -627,6 +628,20 @@ const START_TIME = new Date().getTime();
               lastBuyPrice
             ).toFixed(2)
           ) - actualSlippage;
+
+        const newDate = new Date().getDate();
+        if (newDate !== lastDate) {
+          lastDate = newDate;
+          await Forever(async () => {
+            await Telegram.SendMessage(
+              Args.botToken,
+              Args.chatId,
+              `${new Date().toDateString()}\nCurrent Profit/Loss (Unrealized): ${
+                profitOrLossPercent > 0 ? "+" : ""
+              }${profitOrLossPercent}%`
+            );
+          }, 2);
+        }
 
         console.log(
           `Stable Token Balance (${Args.stableToken}): ${
