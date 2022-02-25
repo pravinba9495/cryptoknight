@@ -1,6 +1,3 @@
-/**
- * All supported blockchain networks
- */
 const NETWORKS = {
   // For Ethereum
   Ethereum: "https://cloudflare-eth.com",
@@ -21,11 +18,6 @@ const NETWORKS = {
   Arbitrum: "https://arb1.arbitrum.io/rpc",
 };
 
-/**
- * GetRpcURLByChainID returns the RPC URL for the given chain id
- * @param chainID Chain ID of the network
- * @returns
- */
 export const GetRpcURLByChainID = (chainID: number): string => {
   switch (chainID) {
     case 1:

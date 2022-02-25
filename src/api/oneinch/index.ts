@@ -1,9 +1,20 @@
 import Axios from "axios";
-import { Token } from "../../models/token";
 
-/**
- * Oneinch Router API
- */
+class Token {
+  id: string = "";
+  name: string = "";
+  decimals: number = 0;
+  symbol: string = "";
+  address: string = "";
+  constructor(token: Token) {
+    this.id = token.id || "";
+    this.name = token.name || "";
+    this.symbol = token.symbol || "";
+    this.address = token.address || "";
+    this.decimals = token.decimals || 0;
+  }
+}
+
 export class Router {
   ChainID: number;
 
@@ -11,11 +22,6 @@ export class Router {
     this.ChainID = chainId;
   }
 
-  /**
-   * GetSwapTransactionData returns the swap data required for the router
-   * @param   params Swap parameters to pass to the router
-   * @returns Promise<any>
-   */
   async GetSwapTransactionData(params: any): Promise<any> {
     return Axios.get<any>(`https://api.1inch.io/v4.0/${this.ChainID}/swap`, {
       params,
@@ -32,11 +38,6 @@ export class Router {
       });
   }
 
-  /**
-   * GetQuote gets the swap quote from 1inch
-   * @param   params Quote parameters to pass to the router
-   * @returns Promise<any>
-   */
   async GetQuote(params: any): Promise<any> {
     return Axios.get<any>(`https://api.1inch.io/v4.0/${this.ChainID}/quote`, {
       params,
@@ -52,10 +53,6 @@ export class Router {
       });
   }
 
-  /**
-   * GetHealthStatus checks the health of the router
-   * @returns Promise<void>
-   */
   async GetHealthStatus(): Promise<boolean> {
     return Axios.get<boolean>(
       `https://api.1inch.io/v4.0/${this.ChainID}/healthcheck`
@@ -72,10 +69,6 @@ export class Router {
       });
   }
 
-  /**
-   * GetContractAddress returns the contract address of the router by the chain id
-   * @returns Promise<string>
-   */
   async GetContractAddress(): Promise<string> {
     return Axios.get<string>(
       `https://api.1inch.io/v4.0/${this.ChainID}/approve/spender`
@@ -91,10 +84,6 @@ export class Router {
       });
   }
 
-  /**
-   * GetSupportedTokens returns the contract address of the router by the chain id
-   * @returns Promise<string>
-   */
   async GetSupportedTokens(): Promise<Token[]> {
     return Axios.get<Token[]>(
       `https://api.1inch.io/v4.0/${this.ChainID}/tokens`
@@ -116,12 +105,6 @@ export class Router {
       });
   }
 
-  /**
-   * GetApprovedAllowance returns the contract address of the router by the chain id
-   * @param tokenAddress Token Contract Address
-   * @param walletAddress Wallet Address
-   * @returns Promise<bigint>
-   */
   async GetApprovedAllowance(
     tokenAddress: string,
     walletAddress: string
@@ -147,12 +130,6 @@ export class Router {
       });
   }
 
-  /**
-   * GetApproveTransactionData gets the router data required to proceed with the token approval process
-   * @param tokenAddress Token address to approve for the router
-   * @param amount Amount to approve
-   * @returns Promise<any> Transaction
-   */
   async GetApproveTransactionData(
     tokenAddress: string,
     amount: string
@@ -177,11 +154,6 @@ export class Router {
       });
   }
 
-  /**
-   * BroadcastRawTransaction broadcasts transaction to the 1inch router
-   * @params rawTransaction Raw Transaction
-   * @returns Promise<string>
-   */
   async BroadcastRawTransaction(rawTransaction: any): Promise<string> {
     return Axios.post<string>(
       `https://tx-gateway.1inch.io/v1.1/${this.ChainID}/broadcast`,
@@ -191,7 +163,7 @@ export class Router {
       }
     )
       .then((response) => response.data)
-      .then((response: any) => response.transactionHash as string)
+      .then((response: any) => (response.transactionHash || "") as string)
       .catch((error) => {
         if (error.response) {
           return Promise.reject(error.response.data);

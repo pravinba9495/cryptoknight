@@ -1,65 +1,55 @@
 import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
-import { Wait } from "./wait";
+import { Forever } from "./forever";
 
-/**
- * Swap method initates the swap token process on the router
- * @param wallet Wallet
- * @param router Router
- * @param params Swap parameters
- * @returns Promise<string>
- */
 export const Swap = async (
   wallet: Wallet,
   router: Router,
   params: any
 ): Promise<string> => {
-  let swapTxWithGas = {};
-  while (true) {
-    try {
-      console.log(`Initiating swapping the tokens`);
-      const swapTx = await router.GetSwapTransactionData(params);
-      swapTxWithGas = {
-        ...swapTx,
-        gas: swapTx.gas + Math.ceil(0.25 * swapTx.gas),
-      };
-      break;
-    } catch (error) {
-      console.error(error);
-      await Wait(5);
-    }
-  }
+  let swapTxWithGas: any = {};
+  let signedSwapTxWithGasRaw: any = {};
   let swapTxHash = "";
-  while (true) {
-    try {
-      const nonce = await wallet.GetNonce();
-      const signedSwapTxWithGasRaw = await wallet.SignTransaction({
-        ...swapTxWithGas,
-        nonce: nonce.toString(),
-      });
-      swapTxHash = await wallet.BroadcastRawTransaction(signedSwapTxWithGasRaw);
-      break;
-    } catch (error) {
-      console.error(error);
-    } finally {
-      await Wait(2);
-    }
-  }
-  console.log(`Token Swap Transaction has been sent: ${swapTxHash}`);
-  while (true) {
+
+  await Forever(async () => {
+    console.log(`Initiating swapping the tokens`);
+    const swapTx = await router.GetSwapTransactionData(params);
+    swapTxWithGas = {
+      ...swapTx,
+      gas: swapTx.gas + Math.ceil(0.25 * swapTx.gas),
+    };
+  }, 2);
+
+  await Forever(async () => {
+    const nonce = await wallet.GetNonce();
+    const { rawTransaction, transactionHash } = await wallet.SignTransaction({
+      ...swapTxWithGas,
+      nonce: nonce.toString(),
+    });
+    signedSwapTxWithGasRaw = rawTransaction;
+    swapTxHash = transactionHash;
+  }, 2);
+
+  await Forever(
+    async () => {
+      await router.BroadcastRawTransaction(signedSwapTxWithGasRaw);
+      console.log(`Token Swap Transaction has been sent: ${swapTxHash}`);
+    },
+    2,
+    3
+  );
+
+  let success = false;
+  await Forever(async () => {
     console.log("Querying transaction status");
-    try {
-      const success = await wallet.GetTransactionReceipt(swapTxHash);
-      if (success) {
-        return swapTxHash;
-      } else {
-        return Promise.reject("Swap Transaction failed");
-      }
-      break;
-    } catch (error) {
-      console.error(error);
-    }
-    await Wait(2);
+    success = await wallet.GetTransactionReceipt(swapTxHash);
+  }, 2);
+
+  if (success) {
+    console.log("Swap Transaction Succeeded");
+    return swapTxHash;
+  } else {
+    console.error("Swap Transaction Failed");
+    return "";
   }
-  return Promise.reject("Swap Transaction failed");
 };

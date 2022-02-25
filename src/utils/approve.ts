@@ -1,15 +1,7 @@
 import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
-import { Wait } from "./wait";
+import { Forever } from "./forever";
 
-/**
- * Approve method will approve the required token access for the given router
- * @param wallet Wallet
- * @param router Router
- * @param tokenContractAddress Token Contract Address
- * @param amount Amount to approve
- * @returns Promise<string> Transaction Hash
- */
 export const Approve = async (
   wallet: Wallet,
   router: Router,
@@ -21,76 +13,66 @@ export const Approve = async (
       amount === "0" ? "Revoking" : "Approving"
     } the router access to the tokens`
   );
-  let approveTx = {};
+  let approveTx: any = {};
+  let signedApproveTxWithGasRaw: any = {};
   let approveTxGas = 0;
+  let approveTxHash = "";
+  let success = false;
 
-  while (true) {
-    try {
-      approveTx = await router.GetApproveTransactionData(
-        tokenContractAddress,
-        amount
-      );
-      break;
-    } catch (error) {
-      console.error(error);
-    } finally {
-      await Wait(2);
-    }
-  }
-  while (true) {
-    try {
-      approveTxGas = await wallet.EstimateGas(approveTx);
-      break;
-    } catch (error) {
-      console.error(error);
-    } finally {
-      await Wait(2);
-    }
-  }
+  await Forever(async () => {
+    approveTx = await router.GetApproveTransactionData(
+      tokenContractAddress,
+      amount
+    );
+  }, 2);
+
+  await Forever(async () => {
+    approveTxGas = await wallet.EstimateGas(approveTx);
+  }, 2);
+
   const approveTxWithGas = {
     ...approveTx,
     gas: approveTxGas,
   };
-  let approveTxHash = "";
-  while (true) {
-    try {
-      const nonce = await wallet.GetNonce();
-      const signedApproveTxWithGasRaw = await wallet.SignTransaction({
-        ...approveTxWithGas,
-        nonce: nonce.toString(),
-      });
-      approveTxHash = await wallet.BroadcastRawTransaction(
-        signedApproveTxWithGasRaw
-      );
-      break;
-    } catch (error) {
-      console.error(error);
-    } finally {
-      await Wait(2);
-    }
-  }
+
+  await Forever(async () => {
+    const nonce = await wallet.GetNonce();
+    const { rawTransaction, transactionHash } = await wallet.SignTransaction({
+      ...approveTxWithGas,
+      nonce: nonce.toString(),
+    });
+    signedApproveTxWithGasRaw = rawTransaction;
+    approveTxHash = transactionHash;
+  }, 2);
+
+  await Forever(
+    async () => {
+      await router.BroadcastRawTransaction(signedApproveTxWithGasRaw);
+    },
+    2,
+    3
+  );
+
   console.log(
     `Token ${
       amount === "0" ? "Revoke" : "Approve"
     } Transaction has been sent: ${approveTxHash}`
   );
-  while (true) {
+
+  await Forever(async () => {
     console.log("Querying transaction status");
-    try {
-      const success = await wallet.GetTransactionReceipt(approveTxHash);
-      if (success) {
-        return approveTxHash;
-      } else {
-        return Promise.reject(
-          `${amount === "0" ? "Revoke" : "Approve"} Transaction failed`
-        );
-      }
-      break;
-    } finally {
-      await Wait(2);
-    }
+    success = await wallet.GetTransactionReceipt(approveTxHash);
+  }, 2);
+
+  if (success) {
+    console.log(
+      `${amount === "0" ? "Revoke" : "Approve"}  Transaction Succeeded`
+    );
+    return approveTxHash;
+  } else {
+    console.error(
+      `${amount === "0" ? "Revoke" : "Approve"}  Transaction Failed`
+    );
+    return "";
   }
-  return Promise.reject(
-    `${amount === "0" ? "Revoke" : "Approve"}  Transaction failed`
-  );
 };

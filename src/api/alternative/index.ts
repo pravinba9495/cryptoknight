@@ -1,13 +1,6 @@
 import Axios from "axios";
 
-/**
- * Alternative.me API
- */
 export class Alternative {
-  /**
-   * GetCryptoFearIndex returns fear/greed index
-   * @returns Promise<any> Object containing fearGreedIndex and fearGreedIndexClassification
-   */
   static GetCryptoFearIndex = async (): Promise<any> => {
     return Axios.get<number>("https://api.alternative.me/fng/", {
       timeout: 5000,
