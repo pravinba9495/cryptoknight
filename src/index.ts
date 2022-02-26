@@ -71,7 +71,12 @@ let lastDate = 0;
     let signal = "";
 
     const redis = await NewClient(Args.redisAddress);
-    await redis.del(`${Args.stableToken}_${Args.targetToken}`);
+    const lastMode =
+      (await redis.get(`${Args.stableToken}_${Args.targetToken}_LAST_MODE`)) ||
+      Args.mode;
+    if (lastMode !== Args.mode) {
+      await redis.del(`${Args.stableToken}_${Args.targetToken}`);
+    }
     const wallet = new Wallet(Args.publicKey, Args.privateKey, Args.chainId);
     const router = new Router(Args.chainId);
 
@@ -830,6 +835,13 @@ let lastDate = 0;
       } else {
         console.log(`Current Status: ${currentStatus}. Nothing to do`);
       }
+
+      await Forever(async () => {
+        await redis.set(
+          `${Args.stableToken}_${Args.targetToken}_LAST_MODE`,
+          Args.mode
+        );
+      }, 2);
 
       // Here
       const end = new Date().getTime();
