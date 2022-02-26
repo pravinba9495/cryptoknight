@@ -1,5 +1,6 @@
 import { Args } from "./flags";
 import { Wait } from "./wait";
+import isOnline from "is-online";
 
 export const Forever = async (
   callback: any,
@@ -15,12 +16,22 @@ export const Forever = async (
     } catch (error) {
       console.error(error);
     }
-    retries += 1;
-    if (retries <= maxRetries) {
+    try {
+      const online = await isOnline();
+      if (online) {
+        retries += 1;
+        if (retries <= maxRetries) {
+          await Wait(retryIntervalSeconds);
+        } else {
+          console.error(`Max retries of ${maxRetries} exhausted`);
+          process.exit(1);
+        }
+      } else {
+        await Wait(retryIntervalSeconds);
+      }
+    } catch (error) {
+      console.error(error);
       await Wait(retryIntervalSeconds);
-    } else {
-      console.error(`Max retries of ${maxRetries} exhausted`);
-      process.exit(1);
     }
   }
   if (retries > 0 && Args.trace) {

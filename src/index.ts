@@ -55,6 +55,8 @@ let LAST_TELEGRAM_SIGNAL = "";
 const ORIGINAL_MODE = Args.mode;
 const START_TIME = new Date().getTime();
 let lastDate = 0;
+let leastGasPrice = 999999999;
+let highestGasPrice = 0;
 
 (async () => {
   try {
@@ -234,8 +236,16 @@ let lastDate = 0;
 
       await Forever(async () => {
         const gasPrice = await wallet.SuggestGasPrice();
+        const gasPriceGwei = Number(gasPrice) / 1000000000;
+        if (gasPriceGwei <= leastGasPrice) {
+          leastGasPrice = gasPriceGwei;
+        }
+        if (gasPriceGwei >= highestGasPrice) {
+          highestGasPrice = gasPriceGwei;
+        }
+        console.log(`Current Gas Price (Gwei): ${gasPriceGwei}`);
         console.log(
-          `Current Gas Price (Gwei): ${Number(gasPrice) / 1000000000}`
+          `Gas Price Range (Gwei): ${leastGasPrice} - ${highestGasPrice}`
         );
       }, 2);
 
