@@ -15,6 +15,7 @@ export const Args = {
   chainId: Number(ENV.CHAIN_ID || 137),
   preAuth: Boolean(ENV.PRE_AUTH || false),
   trailingStop: Boolean(ENV.TRAILING_STOP || false),
+  minProfitPercent: Math.abs(Number(ENV.MIN_PROFIT_PERCENT || 0)),
   stopLimitPercent: Math.abs(Number(ENV.STOP_LIMIT_PERCENT || 10)),
   slippagePercent: Number(ENV.SLIPPAGE_PERCENT || 1),
   port: Number(ENV.PORT || 8080),
