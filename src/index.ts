@@ -316,10 +316,11 @@ let INSTANT_SELL = true;
 
       let COMMAND = "";
       await Forever(async () => {
-        (await redis.hGet(
-          `${Args.stableToken}_${Args.targetToken}`,
-          "NextAction"
-        )) || "";
+        COMMAND =
+          (await redis.hGet(
+            `${Args.stableToken}_${Args.targetToken}`,
+            "NextAction"
+          )) || "";
       }, 2);
 
       if (COMMAND === "BUY") {
