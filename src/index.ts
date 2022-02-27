@@ -525,6 +525,12 @@ let highestGasPrice = 0;
               targetTokenBalance = await wallet.GetTokenBalance(
                 targetTokenContractAddress
               );
+              if (
+                targetTokenBalance === BigInt(0) ||
+                stableTokenBalance !== BigInt(0)
+              ) {
+                await Promise.reject(`Awaiting tokens from the router`);
+              }
             }, 2);
           } else {
             console.log(
@@ -679,25 +685,7 @@ let highestGasPrice = 0;
         const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
         if (
-          signal === "STRONG SELL" &&
-          Args.mode === "AUTO" &&
-          (profitOrLossPercent < 0 ||
-            Math.abs(profitOrLossPercent) < Args.minProfitPercent)
-        ) {
-          await Forever(async () => {
-            await Telegram.SendMessage(
-              Args.botToken,
-              Args.chatId,
-              `Could Not Sell\nSignal Received: ${signal}, Profit/Loss: ${profitOrLossPercent}%`
-            );
-          }, 2);
-        }
-
-        if (
-          (((signal === "STRONG SELL" &&
-            profitOrLossPercent >= 0 &&
-            Math.abs(profitOrLossPercent) >= Args.minProfitPercent) ||
-            stopLimitReached) &&
+          ((signal === "STRONG SELL" || stopLimitReached) &&
             Args.mode === "AUTO") ||
           ((sellLimitReached || stopLimitReached) && Args.mode === "MANUAL")
         ) {
@@ -817,6 +805,12 @@ let highestGasPrice = 0;
               targetTokenBalance = await wallet.GetTokenBalance(
                 targetTokenContractAddress
               );
+              if (
+                targetTokenBalance !== BigInt(0) ||
+                stableTokenBalance === BigInt(0)
+              ) {
+                await Promise.reject(`Awaiting tokens from the router`);
+              }
             }, 2);
           } else {
             console.log(
