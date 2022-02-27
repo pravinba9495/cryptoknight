@@ -32,6 +32,8 @@ export const Approve = async (
 
   const approveTxWithGas = {
     ...approveTx,
+    gasPrice: undefined,
+    maxFeePerGas: approveTx.gasPrice,
     gas: approveTxGas,
   };
 
@@ -44,6 +46,10 @@ export const Approve = async (
     signedApproveTxWithGasRaw = rawTransaction;
     approveTxHash = transactionHash;
   }, 2);
+
+  console.log(
+    `Attempting approve/reject transaction ${approveTxHash} with Gas: ${approveTxWithGas.gas} and MaxFeePerGas: ${approveTxWithGas.maxFeePerGas} (wei)`
+  );
 
   await Forever(
     async () => {
