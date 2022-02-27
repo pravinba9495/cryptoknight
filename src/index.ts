@@ -52,11 +52,12 @@ process.on("unhandledRejection", async (error) => {
 });
 
 let LAST_TELEGRAM_SIGNAL = "";
-const ORIGINAL_MODE = Args.mode;
 const START_TIME = new Date().getTime();
-let lastDate = 0;
-let leastGasPrice = 999999999;
-let highestGasPrice = 0;
+let LAST_DATE = 0;
+let LEAST_GAS_PRICE = 999999999;
+let HIGHEST_GAS_PRICE = 0;
+let INSTANT_BUY = false;
+let INSTANT_SELL = true;
 
 (async () => {
   try {
@@ -73,12 +74,7 @@ let highestGasPrice = 0;
     let signal = "";
 
     const redis = await NewClient(Args.redisAddress);
-    const lastMode =
-      (await redis.get(`${Args.stableToken}_${Args.targetToken}_LAST_MODE`)) ||
-      Args.mode;
-    if (lastMode !== Args.mode) {
-      await redis.del(`${Args.stableToken}_${Args.targetToken}`);
-    }
+    await redis.del(`${Args.stableToken}_${Args.targetToken}`);
     const wallet = new Wallet(Args.publicKey, Args.privateKey, Args.chainId);
     const router = new Router(Args.chainId);
 
@@ -237,15 +233,15 @@ let highestGasPrice = 0;
       await Forever(async () => {
         const gasPrice = await wallet.SuggestGasPrice();
         const gasPriceGwei = Number(gasPrice) / 1000000000;
-        if (gasPriceGwei <= leastGasPrice) {
-          leastGasPrice = gasPriceGwei;
+        if (gasPriceGwei <= LEAST_GAS_PRICE) {
+          LEAST_GAS_PRICE = gasPriceGwei;
         }
-        if (gasPriceGwei >= highestGasPrice) {
-          highestGasPrice = gasPriceGwei;
+        if (gasPriceGwei >= HIGHEST_GAS_PRICE) {
+          HIGHEST_GAS_PRICE = gasPriceGwei;
         }
         console.log(`Current Gas Price (Gwei): ${gasPriceGwei}`);
         console.log(
-          `Gas Price Range (Gwei): ${leastGasPrice} - ${highestGasPrice}`
+          `Gas Price Range (Gwei): ${LEAST_GAS_PRICE} - ${HIGHEST_GAS_PRICE}`
         );
       }, 2);
 
@@ -255,27 +251,6 @@ let highestGasPrice = 0;
         console.log(
           `Current Fear/Greed Level: ${fearGreedIndexClassification} (${fearGreedIndex})`
         );
-        if (fearGreedIndex <= Args.switchModeLimit) {
-          if (Args.mode !== "MANUAL") {
-            Args.mode = "MANUAL";
-            await Forever(async () => {
-              const message = `Switching mode to MANUAL due to fear in the market`;
-              console.log(message);
-              await Telegram.SendMessage(Args.botToken, Args.chatId, message);
-              await redis.del(`${Args.stableToken}_${Args.targetToken}`);
-            }, 2);
-          }
-        } else {
-          if (Args.mode !== ORIGINAL_MODE) {
-            Args.mode = ORIGINAL_MODE;
-            await Forever(async () => {
-              const message = `Switching mode to ${Args.mode} due to hope in the market`;
-              console.log(message);
-              await Telegram.SendMessage(Args.botToken, Args.chatId, message);
-              await redis.del(`${Args.stableToken}_${Args.targetToken}`);
-            }, 2);
-          }
-        }
       }, 2);
 
       await Forever(async () => {
@@ -335,6 +310,41 @@ let highestGasPrice = 0;
           Args.targetTokenTickerKraken
         );
       }, 2);
+
+      INSTANT_BUY = false;
+      INSTANT_SELL = false;
+
+      let COMMAND = "";
+      await Forever(async () => {
+        (await redis.hGet(
+          `${Args.stableToken}_${Args.targetToken}`,
+          "NextAction"
+        )) || "";
+      }, 2);
+
+      if (COMMAND === "BUY") {
+        INSTANT_BUY = true;
+      } else {
+        INSTANT_BUY = false;
+      }
+
+      if (COMMAND === "SELL") {
+        INSTANT_SELL = true;
+      } else {
+        INSTANT_SELL = false;
+      }
+
+      await Forever(async () => {
+        await redis.hDel(
+          `${Args.stableToken}_${Args.targetToken}`,
+          "NextAction"
+        );
+      }, 2);
+
+      if (Args.mode === "AUTO") {
+        INSTANT_BUY = false;
+        INSTANT_SELL = false;
+      }
 
       if (currentStatus === "WAITING_TO_BUY") {
         let buyLimitPrice = 0;
@@ -397,152 +407,117 @@ let highestGasPrice = 0;
           targetTokenCurrentPrice >= buyBackLimitPrice;
 
         if (
-          (signal === "STRONG BUY" && Args.mode === "AUTO") ||
-          ((buyLimitReached || buyBackLimitReached) && Args.mode === "MANUAL")
+          ((buyLimitReached || buyBackLimitReached) && Args.mode === "AUTO") ||
+          INSTANT_BUY
         ) {
-          // Liquidity provider fee: 0.5% approx
-          if (
-            actualSlippage <= Args.slippagePercent + 0.5 ||
-            buyLimitReached ||
-            buyBackLimitReached
-          ) {
-            console.log(
-              `BUY (Current Price: $${targetTokenCurrentPrice}, Slippage: ${actualSlippage.toFixed(
-                2
-              )}%, Slippage Allowed: +${
-                Args.slippagePercent
-              }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
-                quoteResponseDto.toToken.symbol
-              })`
+          console.log(
+            `BUY (Current Price: $${targetTokenCurrentPrice}, Slippage: ${actualSlippage.toFixed(
+              2
+            )}%, Slippage Allowed: +${
+              Args.slippagePercent
+            }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
+              quoteResponseDto.toToken.symbol
+            })`
+          );
+
+          await Forever(async () => {
+            await Telegram.SendMessage(
+              Args.botToken,
+              Args.chatId,
+              `Signal Received: ${signal}`
             );
+          }, 2);
 
-            await Forever(async () => {
-              await Telegram.SendMessage(
-                Args.botToken,
-                Args.chatId,
-                `Signal Received: ${signal}`
-              );
-            }, 2);
+          await PrepareForSwap(
+            router,
+            wallet,
+            stableTokenContractAddress,
+            stableTokenBalance,
+            targetTokenContractAddress
+          );
 
-            await PrepareForSwap(
-              router,
-              wallet,
-              stableTokenContractAddress,
-              stableTokenBalance,
+          await Forever(async () => {
+            await redis.hSet(
+              `${Args.stableToken}_${Args.targetToken}`,
+              "BuyLimitPrice",
+              0
+            );
+            await redis.hSet(
+              `${Args.stableToken}_${Args.targetToken}`,
+              "StopLimitPrice",
+              0
+            );
+            await redis.hSet(
+              `${Args.stableToken}_${Args.targetToken}`,
+              "BuyBackLimitPrice",
+              9999999999
+            );
+            await redis.hSet(
+              `${Args.stableToken}_${Args.targetToken}`,
+              "SellLimitPrice",
+              9999999999
+            );
+            await redis.hSet(
+              `${Args.stableToken}_${Args.targetToken}`,
+              "LastBuyPrice",
+              targetTokenCurrentPrice
+            );
+          }, 2);
+
+          let bal = BigInt(0);
+          let balAmnt = 0;
+
+          await Forever(async () => {
+            bal = await wallet.GetTokenBalance(targetTokenContractAddress);
+            balAmnt =
+              Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
+            stableTokenCurrentPrice = await Kraken.GetCoinPrice(
+              Args.stableTokenTickerKraken
+            );
+            targetTokenCurrentPrice = await Kraken.GetCoinPrice(
+              Args.targetTokenTickerKraken
+            );
+          }, 2);
+
+          const trade = {
+            date: new Date().getTime(),
+            sold: Args.stableToken,
+            soldAmount: stableTokenAmnt,
+            soldValue: stableTokenAmnt * stableTokenCurrentPrice,
+            bought: Args.targetToken,
+            boughtAmount: balAmnt,
+            boughtValue: balAmnt * targetTokenCurrentPrice,
+            tradeLossPercent:
+              ((balAmnt * targetTokenCurrentPrice -
+                stableTokenAmnt * stableTokenCurrentPrice) *
+                100) /
+              (stableTokenAmnt * stableTokenCurrentPrice),
+          };
+
+          await Forever(async () => {
+            await Telegram.SendMessage(
+              Args.botToken,
+              Args.chatId,
+              JSON.stringify(trade, null, 2)
+            );
+          }, 2);
+
+          currentStatus = "WAITING_TO_SELL";
+
+          await Forever(async () => {
+            stableTokenBalance = await wallet.GetTokenBalance(
+              stableTokenContractAddress
+            );
+            targetTokenBalance = await wallet.GetTokenBalance(
               targetTokenContractAddress
             );
-
-            await Forever(async () => {
-              await redis.hSet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "BuyLimitPrice",
-                0
-              );
-              await redis.hSet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "StopLimitPrice",
-                0
-              );
-              await redis.hSet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "BuyBackLimitPrice",
-                9999999999
-              );
-              await redis.hSet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "SellLimitPrice",
-                9999999999
-              );
-              await redis.hSet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "LastBuyPrice",
-                targetTokenCurrentPrice
-              );
-            }, 2);
-
-            let bal = BigInt(0);
-            let balAmnt = 0;
-
-            await Forever(async () => {
-              bal = await wallet.GetTokenBalance(targetTokenContractAddress);
-              balAmnt =
-                Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
-              stableTokenCurrentPrice = await Kraken.GetCoinPrice(
-                Args.stableTokenTickerKraken
-              );
-              targetTokenCurrentPrice = await Kraken.GetCoinPrice(
-                Args.targetTokenTickerKraken
-              );
-            }, 2);
-
-            const trade = {
-              date: new Date().getTime(),
-              sold: Args.stableToken,
-              soldAmount: stableTokenAmnt,
-              soldValue: stableTokenAmnt * stableTokenCurrentPrice,
-              bought: Args.targetToken,
-              boughtAmount: balAmnt,
-              boughtValue: balAmnt * targetTokenCurrentPrice,
-              tradeLossPercent:
-                ((balAmnt * targetTokenCurrentPrice -
-                  stableTokenAmnt * stableTokenCurrentPrice) *
-                  100) /
-                (stableTokenAmnt * stableTokenCurrentPrice),
-            };
-
-            await Forever(async () => {
-              await redis.lPush(
-                `${Args.stableToken}_${Args.targetToken}_SWAP_HISTORY`,
-                JSON.stringify(trade)
-              );
-            }, 2);
-
-            await Forever(async () => {
-              await Telegram.SendMessage(
-                Args.botToken,
-                Args.chatId,
-                JSON.stringify(trade, null, 2)
-              );
-            }, 2);
-
-            if (Args.mode == "AUTO") {
-              await Forever(async () => {
-                await redis.hSet(
-                  `${Args.stableToken}_${Args.targetToken}`,
-                  "StopLimitPrice",
-                  ((100 - Args.stopLimitPercent) / 100) *
-                    targetTokenCurrentPrice
-                );
-              }, 2);
+            if (
+              targetTokenBalance === BigInt(0) ||
+              stableTokenBalance !== BigInt(0)
+            ) {
+              await Promise.reject(`Awaiting tokens from the router`);
             }
-
-            currentStatus = "WAITING_TO_SELL";
-
-            await Forever(async () => {
-              stableTokenBalance = await wallet.GetTokenBalance(
-                stableTokenContractAddress
-              );
-              targetTokenBalance = await wallet.GetTokenBalance(
-                targetTokenContractAddress
-              );
-              if (
-                targetTokenBalance === BigInt(0) ||
-                stableTokenBalance !== BigInt(0)
-              ) {
-                await Promise.reject(`Awaiting tokens from the router`);
-              }
-            }, 2);
-          } else {
-            console.log(
-              `HOLD (Current Price: $${targetTokenCurrentPrice}, Slippage: ${actualSlippage.toFixed(
-                2
-              )}%, Slippage Allowed: +${
-                Args.slippagePercent
-              }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
-                quoteResponseDto.toToken.symbol
-              })`
-            );
-          }
+          }, 2);
         } else {
           console.log(
             `HOLD (Current Price: $${targetTokenCurrentPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
@@ -581,34 +556,6 @@ let highestGasPrice = 0;
                 "StopLimitPrice"
               )
             ) || 0;
-
-          if (Args.mode == "AUTO" && stopLimitPrice === 0) {
-            const newStopLimitPrice =
-              ((100 - Args.stopLimitPercent) / 100) * lastBuyPrice;
-            await Forever(async () => {
-              await redis.hSet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "StopLimitPrice",
-                newStopLimitPrice
-              );
-            }, 2);
-            stopLimitPrice = newStopLimitPrice;
-          }
-
-          if (Args.trailingStop && Args.mode === "AUTO") {
-            const newStopLimitPrice =
-              ((100 - Args.stopLimitPercent) / 100) * targetTokenCurrentPrice;
-            if (stopLimitPrice <= newStopLimitPrice) {
-              await Forever(async () => {
-                await redis.hSet(
-                  `${Args.stableToken}_${Args.targetToken}`,
-                  "StopLimitPrice",
-                  newStopLimitPrice
-                );
-              }, 2);
-              stopLimitPrice = newStopLimitPrice;
-            }
-          }
 
           sellLimitPrice =
             Number(
@@ -651,8 +598,8 @@ let highestGasPrice = 0;
           ) - actualSlippage;
 
         const newDate = new Date().getDate();
-        if (newDate !== lastDate) {
-          lastDate = newDate;
+        if (newDate !== LAST_DATE) {
+          LAST_DATE = newDate;
           await Forever(async () => {
             await Telegram.SendMessage(
               Args.botToken,
@@ -685,164 +632,119 @@ let highestGasPrice = 0;
         const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
         if (
-          signal === "STRONG SELL" &&
-          Args.mode === "AUTO" &&
-          (profitOrLossPercent < 0 ||
-            Math.abs(profitOrLossPercent) < Args.minProfitPercent)
+          ((sellLimitReached || stopLimitReached) && Args.mode === "AUTO") ||
+          INSTANT_SELL
         ) {
+          console.log(
+            `SELL (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Sell Limit Price: $${sellLimitPrice}, Stop Limit Price: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
+              2
+            )}%, Slippage Allowed: +${
+              Args.slippagePercent
+            }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
+              quoteResponseDto.toToken.symbol
+            }, ${
+              profitOrLossPercent > 0 ? "Minimum Profit" : "Maximum Loss"
+            }: ${profitOrLossPercent > 0 ? "+" : ""}${profitOrLossPercent}%)`
+          );
           await Forever(async () => {
             await Telegram.SendMessage(
               Args.botToken,
               Args.chatId,
-              `Could Not Sell\nSignal Received: ${signal}, Profit/Loss: ${profitOrLossPercent}%`
+              `Signal Received: ${signal}, Profit/Loss: ${profitOrLossPercent}%`
             );
           }, 2);
-        }
 
-        if (
-          (((signal === "STRONG SELL" &&
-            profitOrLossPercent >= 0 &&
-            Math.abs(profitOrLossPercent) >= Args.minProfitPercent) ||
-            stopLimitReached) &&
-            Args.mode === "AUTO") ||
-          ((sellLimitReached || stopLimitReached) && Args.mode === "MANUAL")
-        ) {
-          // Liquidity provider fee: 0.5% approx
-          if (
-            actualSlippage <= Args.slippagePercent + 0.5 ||
-            stopLimitReached ||
-            sellLimitReached
-          ) {
-            console.log(
-              `SELL (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Sell Limit Price: $${sellLimitPrice}, Stop Limit Price: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
-                2
-              )}%, Slippage Allowed: +${
-                Args.slippagePercent
-              }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
-                quoteResponseDto.toToken.symbol
-              }, ${
-                profitOrLossPercent > 0 ? "Minimum Profit" : "Maximum Loss"
-              }: ${profitOrLossPercent > 0 ? "+" : ""}${profitOrLossPercent}%)`
+          await PrepareForSwap(
+            router,
+            wallet,
+            targetTokenContractAddress,
+            targetTokenBalance,
+            stableTokenContractAddress
+          );
+
+          await Forever(async () => {
+            await redis.hSet(
+              `${Args.stableToken}_${Args.targetToken}`,
+              "BuyLimitPrice",
+              0
             );
-            await Forever(async () => {
-              await Telegram.SendMessage(
-                Args.botToken,
-                Args.chatId,
-                `Signal Received: ${signal}, Profit/Loss: ${profitOrLossPercent}%`
-              );
-            }, 2);
+            await redis.hSet(
+              `${Args.stableToken}_${Args.targetToken}`,
+              "StopLimitPrice",
+              0
+            );
+            await redis.hSet(
+              `${Args.stableToken}_${Args.targetToken}`,
+              "BuyBackLimitPrice",
+              9999999999
+            );
+            await redis.hSet(
+              `${Args.stableToken}_${Args.targetToken}`,
+              "SellLimitPrice",
+              9999999999
+            );
+            await redis.hSet(
+              `${Args.stableToken}_${Args.targetToken}`,
+              "LastBuyPrice",
+              0
+            );
+          }, 2);
 
-            await PrepareForSwap(
-              router,
-              wallet,
-              targetTokenContractAddress,
-              targetTokenBalance,
+          let bal = BigInt(0);
+          let balAmnt = 0;
+
+          await Forever(async () => {
+            bal = await wallet.GetTokenBalance(stableTokenContractAddress);
+            balAmnt =
+              Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
+
+            stableTokenCurrentPrice = await Kraken.GetCoinPrice(
+              Args.stableTokenTickerKraken
+            );
+            targetTokenCurrentPrice = await Kraken.GetCoinPrice(
+              Args.targetTokenTickerKraken
+            );
+          }, 2);
+
+          const trade = {
+            date: new Date().getTime(),
+            sold: Args.targetToken,
+            soldAmount: targetTokenAmnt,
+            soldValue: targetTokenAmnt * targetTokenCurrentPrice,
+            bought: Args.stableToken,
+            boughtAmount: balAmnt,
+            boughtValue: balAmnt * stableTokenCurrentPrice,
+            tradeLossPercent:
+              ((balAmnt * stableTokenCurrentPrice -
+                targetTokenAmnt * targetTokenCurrentPrice) *
+                100) /
+              (targetTokenAmnt * targetTokenCurrentPrice),
+          };
+
+          await Forever(async () => {
+            await Telegram.SendMessage(
+              Args.botToken,
+              Args.chatId,
+              JSON.stringify(trade, null, 2)
+            );
+          }, 2);
+
+          currentStatus = "WAITING_TO_BUY";
+
+          await Forever(async () => {
+            stableTokenBalance = await wallet.GetTokenBalance(
               stableTokenContractAddress
             );
-
-            await Forever(async () => {
-              await redis.hSet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "BuyLimitPrice",
-                0
-              );
-              await redis.hSet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "StopLimitPrice",
-                0
-              );
-              await redis.hSet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "BuyBackLimitPrice",
-                9999999999
-              );
-              await redis.hSet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "SellLimitPrice",
-                9999999999
-              );
-              await redis.hSet(
-                `${Args.stableToken}_${Args.targetToken}`,
-                "LastBuyPrice",
-                0
-              );
-            }, 2);
-
-            let bal = BigInt(0);
-            let balAmnt = 0;
-
-            await Forever(async () => {
-              bal = await wallet.GetTokenBalance(stableTokenContractAddress);
-              balAmnt =
-                Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
-
-              stableTokenCurrentPrice = await Kraken.GetCoinPrice(
-                Args.stableTokenTickerKraken
-              );
-              targetTokenCurrentPrice = await Kraken.GetCoinPrice(
-                Args.targetTokenTickerKraken
-              );
-            }, 2);
-
-            const trade = {
-              date: new Date().getTime(),
-              sold: Args.targetToken,
-              soldAmount: targetTokenAmnt,
-              soldValue: targetTokenAmnt * targetTokenCurrentPrice,
-              bought: Args.stableToken,
-              boughtAmount: balAmnt,
-              boughtValue: balAmnt * stableTokenCurrentPrice,
-              tradeLossPercent:
-                ((balAmnt * stableTokenCurrentPrice -
-                  targetTokenAmnt * targetTokenCurrentPrice) *
-                  100) /
-                (targetTokenAmnt * targetTokenCurrentPrice),
-            };
-
-            await Forever(async () => {
-              await redis.lPush(
-                `${Args.stableToken}_${Args.targetToken}_SWAP_HISTORY`,
-                JSON.stringify(trade)
-              );
-            }, 2);
-
-            await Forever(async () => {
-              await Telegram.SendMessage(
-                Args.botToken,
-                Args.chatId,
-                JSON.stringify(trade, null, 2)
-              );
-            }, 2);
-
-            currentStatus = "WAITING_TO_BUY";
-
-            await Forever(async () => {
-              stableTokenBalance = await wallet.GetTokenBalance(
-                stableTokenContractAddress
-              );
-              targetTokenBalance = await wallet.GetTokenBalance(
-                targetTokenContractAddress
-              );
-              if (
-                targetTokenBalance !== BigInt(0) ||
-                stableTokenBalance === BigInt(0)
-              ) {
-                await Promise.reject(`Awaiting tokens from the router`);
-              }
-            }, 2);
-          } else {
-            console.log(
-              `HOLD (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Sell Limit Price: $${sellLimitPrice}, Stop Limit Price: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
-                2
-              )}%, Slippage Allowed: +${
-                Args.slippagePercent
-              }%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${
-                quoteResponseDto.toToken.symbol
-              }, ${
-                profitOrLossPercent > 0 ? "Minimum Profit" : "Maximum Loss"
-              }: ${profitOrLossPercent > 0 ? "+" : ""}${profitOrLossPercent}%)`
+            targetTokenBalance = await wallet.GetTokenBalance(
+              targetTokenContractAddress
             );
-          }
+            if (
+              targetTokenBalance !== BigInt(0) ||
+              stableTokenBalance === BigInt(0)
+            ) {
+              await Promise.reject(`Awaiting tokens from the router`);
+            }
+          }, 2);
         } else {
           console.log(
             `HOLD (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Sell Limit Price: $${sellLimitPrice}, Stop Limit Price: $${stopLimitPrice}, Slippage Allowed: +${
