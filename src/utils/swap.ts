@@ -1,5 +1,6 @@
 import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
+import { Args } from "./flags";
 import { Forever } from "./forever";
 
 export const Swap = async (
@@ -17,7 +18,8 @@ export const Swap = async (
     swapTxWithGas = {
       ...swapTx,
       gasPrice: undefined,
-      maxFeePerGas: swapTx.gasPrice,
+      maxPriorityFeePerGas: Args.maxPriorityFeePerGas,
+      maxFeePerGas: Args.maxFeePerGas,
       gas: swapTx.gas + Math.ceil(0.25 * swapTx.gas),
     };
   }, 2);

@@ -80,16 +80,4 @@ export class Wallet {
     );
     return nonce;
   }
-
-  async SuggestGasPrice() {
-    const gasPrice = await Web3Client.eth.getGasPrice();
-    return gasPrice;
-  }
-
-  async BroadcastRawTransaction(transaction: any) {
-    const { transactionHash } = await Web3Client.eth.sendSignedTransaction(
-      transaction
-    );
-    return transactionHash;
-  }
 }

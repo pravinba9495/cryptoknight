@@ -1,5 +1,6 @@
 import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
+import { Args } from "./flags";
 import { Forever } from "./forever";
 
 export const Approve = async (
@@ -33,7 +34,8 @@ export const Approve = async (
   const approveTxWithGas = {
     ...approveTx,
     gasPrice: undefined,
-    maxFeePerGas: approveTx.gasPrice,
+    maxPriorityFeePerGas: Args.maxPriorityFeePerGas,
+    maxFeePerGas: Args.maxFeePerGas,
     gas: approveTxGas,
   };
 
