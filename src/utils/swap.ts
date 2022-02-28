@@ -1,5 +1,6 @@
 import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
+import { Args } from "./flags";
 import { Forever } from "./forever";
 
 export const Swap = async (
@@ -16,6 +17,9 @@ export const Swap = async (
     const swapTx = await router.GetSwapTransactionData(params);
     swapTxWithGas = {
       ...swapTx,
+      gasPrice: undefined,
+      maxPriorityFeePerGas: Args.maxPriorityFeePerGas,
+      maxFeePerGas: Args.maxFeePerGas,
       gas: swapTx.gas + Math.ceil(0.25 * swapTx.gas),
     };
   }, 2);
@@ -29,6 +33,10 @@ export const Swap = async (
     signedSwapTxWithGasRaw = rawTransaction;
     swapTxHash = transactionHash;
   }, 2);
+
+  console.log(
+    `Attempting swap transaction ${swapTxHash} with Gas: ${swapTxWithGas.gas} and MaxFeePerGas: ${swapTxWithGas.maxFeePerGas} (wei)`
+  );
 
   await Forever(
     async () => {

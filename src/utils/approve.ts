@@ -1,5 +1,6 @@
 import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
+import { Args } from "./flags";
 import { Forever } from "./forever";
 
 export const Approve = async (
@@ -32,6 +33,9 @@ export const Approve = async (
 
   const approveTxWithGas = {
     ...approveTx,
+    gasPrice: undefined,
+    maxPriorityFeePerGas: Args.maxPriorityFeePerGas,
+    maxFeePerGas: Args.maxFeePerGas,
     gas: approveTxGas,
   };
 
@@ -44,6 +48,10 @@ export const Approve = async (
     signedApproveTxWithGasRaw = rawTransaction;
     approveTxHash = transactionHash;
   }, 2);
+
+  console.log(
+    `Attempting approve/reject transaction ${approveTxHash} with Gas: ${approveTxWithGas.gas} and MaxFeePerGas: ${approveTxWithGas.maxFeePerGas} (wei)`
+  );
 
   await Forever(
     async () => {

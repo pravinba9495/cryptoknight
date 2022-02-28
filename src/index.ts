@@ -54,8 +54,6 @@ process.on("unhandledRejection", async (error) => {
 let LAST_TELEGRAM_SIGNAL = "";
 const START_TIME = new Date().getTime();
 let LAST_DATE = 0;
-let LEAST_GAS_PRICE = 999999999;
-let HIGHEST_GAS_PRICE = 0;
 let INSTANT_BUY = false;
 let INSTANT_SELL = true;
 
@@ -228,21 +226,6 @@ let INSTANT_SELL = true;
           targetTokenBalance
         );
         console.log(`Current Status: ${currentStatus}`);
-      }, 2);
-
-      await Forever(async () => {
-        const gasPrice = await wallet.SuggestGasPrice();
-        const gasPriceGwei = Number(gasPrice) / 1000000000;
-        if (gasPriceGwei <= LEAST_GAS_PRICE) {
-          LEAST_GAS_PRICE = gasPriceGwei;
-        }
-        if (gasPriceGwei >= HIGHEST_GAS_PRICE) {
-          HIGHEST_GAS_PRICE = gasPriceGwei;
-        }
-        console.log(`Current Gas Price (Gwei): ${gasPriceGwei}`);
-        console.log(
-          `Gas Price Range (Gwei): ${LEAST_GAS_PRICE} - ${HIGHEST_GAS_PRICE}`
-        );
       }, 2);
 
       await Forever(async () => {
