@@ -259,17 +259,7 @@ let INSTANT_SELL = true;
         LAST_TELEGRAM_SIGNAL !== signal
       ) {
         await Forever(async () => {
-          const notify =
-            (signal.includes("STRONG BUY") &&
-              currentStatus === "WAITING_TO_BUY") ||
-            (signal.includes("STRONG SELL") &&
-              currentStatus === "WAITING_TO_SELL");
-          await Telegram.SendMessage(
-            Args.botToken,
-            Args.chatId,
-            signal,
-            notify
-          );
+          await Telegram.SendMessage(Args.botToken, Args.chatId, signal);
         }, 2);
       }
       LAST_TELEGRAM_SIGNAL = signal;

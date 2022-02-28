@@ -62,15 +62,21 @@ export class Wallet {
   }
 
   async GetTransactionReceipt(txHash: string): Promise<boolean> {
-    while (true) {
+    let retries = 0;
+    while (retries < 50) {
       const receipt = await Web3Client.eth.getTransactionReceipt(txHash);
       if (receipt != null) {
         console.log(`Fetched transaction receipt for ${txHash}`);
         return receipt.status;
       } else {
+        retries += 1;
+        console.log(
+          `Retrying (${retries}) to fetch transaction receipt for ${txHash}`
+        );
         await Wait(5);
       }
     }
+    return false;
   }
 
   async GetNonce() {
