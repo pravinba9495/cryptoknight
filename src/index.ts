@@ -16,6 +16,7 @@ import { Alternative } from "./api/alternative";
 import { Kraken } from "./api/kraken";
 import { Forever } from "./utils/forever";
 import { PrepareForSwap } from "./utils/prepare";
+import { Gas } from "./api/gas";
 
 process.on("uncaughtException", async (error) => {
   console.error(error);
@@ -234,6 +235,11 @@ let INSTANT_SELL = true;
         console.log(
           `Current Fear/Greed Level: ${fearGreedIndexClassification} (${fearGreedIndex})`
         );
+      }, 2);
+
+      await Forever(async () => {
+        const gasPrice = await Gas.GetGasPrice(Args.chainId);
+        console.log(`Current Gas Price: ${gasPrice} (wei)`);
       }, 2);
 
       await Forever(async () => {
