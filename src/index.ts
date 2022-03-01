@@ -444,13 +444,26 @@ let INSTANT_SELL = true;
             );
           }, 2);
 
-          let bal = BigInt(0);
-          let balAmnt = 0;
+          await Forever(async () => {
+            stableTokenBalance = await wallet.GetTokenBalance(
+              stableTokenContractAddress
+            );
+            targetTokenBalance = await wallet.GetTokenBalance(
+              targetTokenContractAddress
+            );
+            if (
+              targetTokenBalance === BigInt(0) ||
+              stableTokenBalance !== BigInt(0)
+            ) {
+              await Promise.reject(`Awaiting tokens from the router`);
+            }
+          }, 2);
+
+          let bal = targetTokenBalance;
+          let balAmnt =
+            Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
 
           await Forever(async () => {
-            bal = await wallet.GetTokenBalance(targetTokenContractAddress);
-            balAmnt =
-              Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
             stableTokenCurrentPrice = await Kraken.GetCoinPrice(
               Args.stableTokenTickerKraken
             );
@@ -483,21 +496,6 @@ let INSTANT_SELL = true;
           }, 2);
 
           currentStatus = "WAITING_TO_SELL";
-
-          await Forever(async () => {
-            stableTokenBalance = await wallet.GetTokenBalance(
-              stableTokenContractAddress
-            );
-            targetTokenBalance = await wallet.GetTokenBalance(
-              targetTokenContractAddress
-            );
-            if (
-              targetTokenBalance === BigInt(0) ||
-              stableTokenBalance !== BigInt(0)
-            ) {
-              await Promise.reject(`Awaiting tokens from the router`);
-            }
-          }, 2);
         } else {
           console.log(
             `HOLD (Current Price: $${targetTokenCurrentPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
@@ -670,14 +668,26 @@ let INSTANT_SELL = true;
             );
           }, 2);
 
-          let bal = BigInt(0);
-          let balAmnt = 0;
+          await Forever(async () => {
+            stableTokenBalance = await wallet.GetTokenBalance(
+              stableTokenContractAddress
+            );
+            targetTokenBalance = await wallet.GetTokenBalance(
+              targetTokenContractAddress
+            );
+            if (
+              targetTokenBalance !== BigInt(0) ||
+              stableTokenBalance === BigInt(0)
+            ) {
+              await Promise.reject(`Awaiting tokens from the router`);
+            }
+          }, 2);
+
+          let bal = stableTokenBalance;
+          let balAmnt =
+            Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
 
           await Forever(async () => {
-            bal = await wallet.GetTokenBalance(stableTokenContractAddress);
-            balAmnt =
-              Number(bal) / Math.pow(10, quoteResponseDto.toToken.decimals);
-
             stableTokenCurrentPrice = await Kraken.GetCoinPrice(
               Args.stableTokenTickerKraken
             );
@@ -708,23 +718,7 @@ let INSTANT_SELL = true;
               JSON.stringify(trade, null, 2)
             );
           }, 2);
-
           currentStatus = "WAITING_TO_BUY";
-
-          await Forever(async () => {
-            stableTokenBalance = await wallet.GetTokenBalance(
-              stableTokenContractAddress
-            );
-            targetTokenBalance = await wallet.GetTokenBalance(
-              targetTokenContractAddress
-            );
-            if (
-              targetTokenBalance !== BigInt(0) ||
-              stableTokenBalance === BigInt(0)
-            ) {
-              await Promise.reject(`Awaiting tokens from the router`);
-            }
-          }, 2);
         } else {
           console.log(
             `HOLD (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Sell Limit Price: $${sellLimitPrice}, Stop Limit Price: $${stopLimitPrice}, Slippage Allowed: +${
