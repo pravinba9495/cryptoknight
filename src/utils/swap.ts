@@ -1,3 +1,4 @@
+import { Gas } from "../api/gas";
 import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
 import { Args } from "./flags";
@@ -15,11 +16,12 @@ export const Swap = async (
   await Forever(async () => {
     console.log(`Initiating swapping the tokens`);
     const swapTx = await router.GetSwapTransactionData(params);
+    const gasPrice = await Gas.GetGasPrice(Args.chainId);
     swapTxWithGas = {
       ...swapTx,
       gasPrice: undefined,
-      maxPriorityFeePerGas: Args.maxPriorityFeePerGas,
-      maxFeePerGas: Args.maxFeePerGas,
+      maxPriorityFeePerGas: gasPrice.toString(),
+      maxFeePerGas: gasPrice.toString(),
       gas: swapTx.gas + Math.ceil(0.25 * swapTx.gas),
     };
   }, 2);
@@ -35,7 +37,7 @@ export const Swap = async (
   }, 2);
 
   console.log(
-    `Attempting swap transaction ${swapTxHash} with Gas: ${swapTxWithGas.gas} and MaxFeePerGas: ${swapTxWithGas.maxFeePerGas} (wei)`
+    `Attempting swap transaction ${swapTxHash} with Gas: ${swapTxWithGas.gas}, MaxPriorityFeePerGas: ${swapTxWithGas.maxPriorityFeePerGas}, MaxFeePerGas: ${swapTxWithGas.maxFeePerGas} (wei)`
   );
 
   await Forever(

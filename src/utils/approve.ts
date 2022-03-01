@@ -1,3 +1,4 @@
+import { Gas } from "../api/gas";
 import { Router } from "../api/oneinch";
 import { Wallet } from "../api/wallet";
 import { Args } from "./flags";
@@ -31,11 +32,13 @@ export const Approve = async (
     approveTxGas = await wallet.EstimateGas(approveTx);
   }, 2);
 
+  const gasPrice = await Gas.GetGasPrice(Args.chainId);
+
   const approveTxWithGas = {
     ...approveTx,
     gasPrice: undefined,
-    maxPriorityFeePerGas: Args.maxPriorityFeePerGas,
-    maxFeePerGas: Args.maxFeePerGas,
+    maxPriorityFeePerGas: gasPrice.toString(),
+    maxFeePerGas: gasPrice.toString(),
     gas: approveTxGas,
   };
 
@@ -50,7 +53,7 @@ export const Approve = async (
   }, 2);
 
   console.log(
-    `Attempting approve/reject transaction ${approveTxHash} with Gas: ${approveTxWithGas.gas} and MaxFeePerGas: ${approveTxWithGas.maxFeePerGas} (wei)`
+    `Attempting approve/reject transaction ${approveTxHash} with Gas: ${approveTxWithGas.gas}, MaxPriorityFeePerGas: ${approveTxWithGas.maxPriorityFeePerGas}, MaxFeePerGas: ${approveTxWithGas.maxFeePerGas} (wei)`
   );
 
   await Forever(

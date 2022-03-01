@@ -17,6 +17,4 @@ export const Args = {
   slippagePercent: Number(ENV.SLIPPAGE_PERCENT || 1),
   port: Number(ENV.PORT || 8080),
   trace: Boolean(ENV.TRACE || false),
-  maxPriorityFeePerGas: ENV.MAX_PRIORITY_FEE_PER_GAS || "200000000000",
-  maxFeePerGas: ENV.MAX_FEE_PER_GAS || "200000000000",
 };
