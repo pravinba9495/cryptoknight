@@ -16,7 +16,7 @@ export class Kraken {
         return Number(response["result"][pair.toUpperCase()]["c"][0]);
       })
       .catch((error) => {
-        if (error.response) {
+        if (error.response && error.response.data) {
           return Promise.reject(error.response.data);
         } else {
           return Promise.reject(new Error("Request failed"));

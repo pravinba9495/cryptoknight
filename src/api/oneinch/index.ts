@@ -30,7 +30,7 @@ export class Router {
       .then((response) => response.data)
       .then((response) => response.tx as any)
       .catch((error) => {
-        if (error.response) {
+        if (error.response && error.response.data) {
           return Promise.reject(error.response.data);
         } else {
           return Promise.reject(new Error("Request failed"));
@@ -45,7 +45,7 @@ export class Router {
     })
       .then((response) => response.data)
       .catch((error) => {
-        if (error.response) {
+        if (error.response && error.response.data) {
           return Promise.reject(error.response.data);
         } else {
           return Promise.reject(new Error("Request failed"));
@@ -64,7 +64,7 @@ export class Router {
         return Promise.resolve(true);
       })
       .catch((error) => {
-        if (error.response) {
+        if (error.response && error.response.data) {
           return Promise.reject(error.response.data);
         } else {
           return Promise.reject(new Error("Request failed"));
@@ -82,7 +82,7 @@ export class Router {
       .then((response) => response.data)
       .then((response: any) => response.address as string)
       .catch((error) => {
-        if (error.response) {
+        if (error.response && error.response.data) {
           return Promise.reject(error.response.data);
         } else {
           return Promise.reject(new Error("Request failed"));
@@ -106,7 +106,7 @@ export class Router {
         return Promise.resolve(tokens.map((t) => new Token(t)));
       })
       .catch((error) => {
-        if (error.response) {
+        if (error.response && error.response.data) {
           return Promise.reject(error.response.data);
         } else {
           return Promise.reject(new Error("Request failed"));
@@ -131,7 +131,7 @@ export class Router {
       .then((response) => response.data)
       .then((response: any) => BigInt(response.allowance))
       .catch((error) => {
-        if (error.response) {
+        if (error.response && error.response.data) {
           return Promise.reject(error.response.data);
         } else {
           return Promise.reject(new Error("Request failed"));
@@ -155,7 +155,7 @@ export class Router {
     )
       .then((response) => response.data as any)
       .catch((error) => {
-        if (error.response) {
+        if (error.response && error.response.data) {
           return Promise.reject(error.response.data);
         } else {
           return Promise.reject(new Error("Request failed"));
@@ -176,7 +176,7 @@ export class Router {
       .then((response) => response.data)
       .then((response: any) => (response.transactionHash || "") as string)
       .catch((error) => {
-        if (error.response) {
+        if (error.response && error.response.data) {
           return Promise.reject(error.response.data);
         } else {
           return Promise.reject(new Error("Request failed"));

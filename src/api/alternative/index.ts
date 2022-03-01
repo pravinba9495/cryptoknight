@@ -14,7 +14,7 @@ export class Alternative {
         };
       })
       .catch((error) => {
-        if (error.response) {
+        if (error.response && error.response.data) {
           return Promise.reject(error.response.data);
         } else {
           return Promise.reject(new Error("Request failed"));

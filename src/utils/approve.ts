@@ -37,8 +37,8 @@ export const Approve = async (
   const approveTxWithGas = {
     ...approveTx,
     gasPrice: undefined,
-    maxPriorityFeePerGas: gasPrice.toString(),
-    maxFeePerGas: gasPrice.toString(),
+    maxPriorityFeePerGas: gasPrice,
+    maxFeePerGas: gasPrice,
     gas: approveTxGas,
   };
 

@@ -49,7 +49,11 @@ export class Telegram {
           }
         })
         .catch((error) => {
-          reject(error);
+          if (error.response && error.response.data) {
+            reject(error.response.data);
+          } else {
+            reject(new Error("Request failed"));
+          }
         });
     });
   };
