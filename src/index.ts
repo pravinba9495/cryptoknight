@@ -239,7 +239,7 @@ let INSTANT_SELL = true;
 
       await Forever(async () => {
         const gasPrice = await Gas.GetGasPrice(Args.chainId);
-        console.log(`Current Gas Price: ${gasPrice} (wei)`);
+        console.log(`Current Gas Price (Rapid): ${gasPrice} (wei)`);
       }, 2);
 
       await Forever(async () => {
