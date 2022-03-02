@@ -17,6 +17,7 @@ import { Kraken } from "./api/kraken";
 import { Forever } from "./utils/forever";
 import { PrepareForSwap } from "./utils/prepare";
 import { Gas } from "./api/gas";
+import Web3 from "web3";
 
 process.on("uncaughtException", async (error) => {
   console.error(error);
@@ -65,8 +66,8 @@ let INSTANT_SELL = true;
     let routerAddress = "";
     let tokens: any[] = [];
     let ngRokURL = "";
-    let stableTokenBalance = BigInt(0);
-    let targetTokenBalance = BigInt(0);
+    let stableTokenBalance = Web3.utils.toBN(0);
+    let targetTokenBalance = Web3.utils.toBN(0);
     let stableTokenCurrentPrice = 0;
     let targetTokenCurrentPrice = 0;
     let currentStatus = "";
@@ -140,7 +141,7 @@ let INSTANT_SELL = true;
           targetTokenContractAddress,
           wallet.Address
         );
-        if (stableTokenAllowance >= stableTokenBalance) {
+        if (stableTokenAllowance.gte(stableTokenBalance)) {
           console.log(
             `Router already preauthorized to spend ${Args.stableToken}`
           );
@@ -171,7 +172,7 @@ let INSTANT_SELL = true;
             );
           }
         }
-        if (targetTokenAllowance >= targetTokenBalance) {
+        if (targetTokenAllowance.gte(targetTokenBalance)) {
           console.log(
             `Router already preauthorized to spend ${Args.targetToken}`
           );
@@ -452,8 +453,8 @@ let INSTANT_SELL = true;
               targetTokenContractAddress
             );
             if (
-              targetTokenBalance === BigInt(0) ||
-              stableTokenBalance !== BigInt(0)
+              targetTokenBalance.eq(Web3.utils.toBN(0)) ||
+              !stableTokenBalance.eq(Web3.utils.toBN(0))
             ) {
               await Promise.reject(`Awaiting tokens from the router`);
             }
@@ -676,8 +677,8 @@ let INSTANT_SELL = true;
               targetTokenContractAddress
             );
             if (
-              targetTokenBalance !== BigInt(0) ||
-              stableTokenBalance === BigInt(0)
+              !targetTokenBalance.eq(Web3.utils.toBN(0)) ||
+              stableTokenBalance.eq(Web3.utils.toBN(0))
             ) {
               await Promise.reject(`Awaiting tokens from the router`);
             }

@@ -1,5 +1,6 @@
 import Axios from "axios";
-
+import Web3 from "web3";
+import BN from "bn.js";
 class Token {
   id: string = "";
   name: string = "";
@@ -117,8 +118,8 @@ export class Router {
   async GetApprovedAllowance(
     tokenAddress: string,
     walletAddress: string
-  ): Promise<bigint> {
-    return Axios.get<bigint>(
+  ): Promise<BN> {
+    return Axios.get<BN>(
       `https://api.1inch.io/v4.0/${this.ChainID}/approve/allowance`,
       {
         params: {
@@ -129,7 +130,7 @@ export class Router {
       }
     )
       .then((response) => response.data)
-      .then((response: any) => BigInt(response.allowance))
+      .then((response: any) => Web3.utils.toBN(response.allowance))
       .catch((error) => {
         if (error.response && error.response.data) {
           return Promise.reject(error.response.data);

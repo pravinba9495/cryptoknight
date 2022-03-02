@@ -6,15 +6,17 @@ import { Args } from "./flags";
 import { Forever } from "./forever";
 import { Swap } from "./swap";
 import { Wait } from "./wait";
+import BN from "bn.js";
+import Web3 from "web3";
 
 export const PrepareForSwap = async (
   router: Router,
   wallet: Wallet,
   fromTokenContractAddress: string,
-  fromTokenBalance: bigint,
+  fromTokenBalance: BN,
   toTokenContractAddress: string
 ): Promise<void> => {
-  let fromTokenAllowance = BigInt(0);
+  let fromTokenAllowance = Web3.utils.toBN(0);
 
   await Forever(async () => {
     fromTokenAllowance = await router.GetApprovedAllowance(
@@ -23,7 +25,7 @@ export const PrepareForSwap = async (
     );
   }, 2);
 
-  if (fromTokenAllowance >= fromTokenBalance) {
+  if (fromTokenAllowance.gte(fromTokenBalance)) {
     console.log(
       `Router is approved to spend the required amount of tokens for a swap`
     );
@@ -57,14 +59,14 @@ export const PrepareForSwap = async (
       }, 2);
       while (true) {
         console.log(`Refreshing router token allowance`);
-        let fromTokenAllowance = BigInt(0);
+        let fromTokenAllowance = Web3.utils.toBN(0);
         await Forever(async () => {
           fromTokenAllowance = await router.GetApprovedAllowance(
             fromTokenContractAddress,
             Args.publicKey
           );
         }, 2);
-        if (fromTokenAllowance === BigInt(0)) {
+        if (fromTokenAllowance.eq(Web3.utils.toBN(0))) {
           console.log("Router approval is revoked successfully");
           break;
         }
@@ -93,7 +95,7 @@ export const PrepareForSwap = async (
       process.exit(1);
     } else {
       while (true) {
-        let fromTokenAllowance = BigInt(0);
+        let fromTokenAllowance = Web3.utils.toBN(0);
         await Forever(async () => {
           console.log(`Refreshing router token allowance`);
           fromTokenAllowance = await router.GetApprovedAllowance(
@@ -101,7 +103,7 @@ export const PrepareForSwap = async (
             Args.publicKey
           );
         }, 2);
-        if (fromTokenAllowance >= fromTokenBalance) {
+        if (fromTokenAllowance.gte(fromTokenBalance)) {
           console.log(`Router is now approved to spend the required tokens`);
           break;
         } else {

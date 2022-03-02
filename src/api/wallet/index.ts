@@ -1,5 +1,7 @@
+import Web3 from "web3";
 import { Wait } from "../../utils/wait";
 import { Web3Client, GetWeb3ContractClient } from "../web3";
+import BN from "bn.js";
 
 const ERC20Abi: any = [
   {
@@ -33,15 +35,15 @@ export class Wallet {
     this.ChainID = chainId;
   }
 
-  async GetBalance(): Promise<bigint> {
+  async GetBalance(): Promise<BN> {
     const balance = await Web3Client.eth.getBalance(this.Address);
-    return BigInt(balance);
+    return Web3.utils.toBN(balance);
   }
 
-  async GetTokenBalance(tokenContractAddress: string): Promise<bigint> {
+  async GetTokenBalance(tokenContractAddress: string): Promise<BN> {
     const contract = GetWeb3ContractClient(ERC20Abi, tokenContractAddress);
     const balance = await contract.methods.balanceOf(this.Address).call();
-    return BigInt(balance);
+    return Web3.utils.toBN(balance);
   }
 
   async SignTransaction(transaction: any): Promise<any> {

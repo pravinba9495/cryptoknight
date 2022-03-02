@@ -1,13 +1,16 @@
+import BN from "bn.js";
+
 export const GetCurrentStatus = (
-  stableTokenBalance: bigint,
-  targetTokenBalance: bigint
+  stableTokenBalance: BN,
+  targetTokenBalance: BN
 ): string => {
   let currentStatus = "UNKNOWN";
-  if (stableTokenBalance !== BigInt(0) && targetTokenBalance === BigInt(0)) {
+  if (stableTokenBalance.gte(targetTokenBalance)) {
     currentStatus = "WAITING_TO_BUY";
-  }
-  if (stableTokenBalance === BigInt(0) && targetTokenBalance !== BigInt(0)) {
+  } else if (targetTokenBalance.gte(stableTokenBalance)) {
     currentStatus = "WAITING_TO_SELL";
+  } else {
+    currentStatus = "UNKNOWN";
   }
   return currentStatus;
 };
