@@ -445,6 +445,7 @@ let INSTANT_SELL = true;
             );
           }, 2);
 
+          let previousTargetTokenBalance = targetTokenBalance;
           await Forever(async () => {
             stableTokenBalance = await wallet.GetTokenBalance(
               stableTokenContractAddress
@@ -452,10 +453,7 @@ let INSTANT_SELL = true;
             targetTokenBalance = await wallet.GetTokenBalance(
               targetTokenContractAddress
             );
-            if (
-              targetTokenBalance.eq(Web3.utils.toBN(0)) ||
-              !stableTokenBalance.eq(Web3.utils.toBN(0))
-            ) {
+            if (!targetTokenBalance.gte(previousTargetTokenBalance)) {
               await Promise.reject(`Awaiting tokens from the router`);
             }
           }, 2);
@@ -669,6 +667,7 @@ let INSTANT_SELL = true;
             );
           }, 2);
 
+          let previousStableTokenBalance = stableTokenBalance;
           await Forever(async () => {
             stableTokenBalance = await wallet.GetTokenBalance(
               stableTokenContractAddress
@@ -676,10 +675,7 @@ let INSTANT_SELL = true;
             targetTokenBalance = await wallet.GetTokenBalance(
               targetTokenContractAddress
             );
-            if (
-              !targetTokenBalance.eq(Web3.utils.toBN(0)) ||
-              stableTokenBalance.eq(Web3.utils.toBN(0))
-            ) {
+            if (!stableTokenBalance.gte(previousStableTokenBalance)) {
               await Promise.reject(`Awaiting tokens from the router`);
             }
           }, 2);
