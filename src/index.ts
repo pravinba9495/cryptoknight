@@ -453,7 +453,7 @@ let INSTANT_SELL = true;
             targetTokenBalance = await wallet.GetTokenBalance(
               targetTokenContractAddress
             );
-            if (!targetTokenBalance.gte(previousTargetTokenBalance)) {
+            if (!targetTokenBalance.gt(previousTargetTokenBalance)) {
               await Promise.reject(`Awaiting tokens from the router`);
             }
           }, 2);
@@ -675,7 +675,7 @@ let INSTANT_SELL = true;
             targetTokenBalance = await wallet.GetTokenBalance(
               targetTokenContractAddress
             );
-            if (!stableTokenBalance.gte(previousStableTokenBalance)) {
+            if (!stableTokenBalance.gt(previousStableTokenBalance)) {
               await Promise.reject(`Awaiting tokens from the router`);
             }
           }, 2);
