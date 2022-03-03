@@ -13,8 +13,8 @@ export const Args = {
   password: ENV.PASSWORD || "kryptonite",
   redisAddress: ENV.REDIS_ADDRESS || "",
   chainId: Number(ENV.CHAIN_ID || 137),
-  preAuth: Boolean(ENV.PRE_AUTH || false),
+  preAuth: ENV.PRE_AUTH ? Boolean(ENV.PRE_AUTH) : false,
   slippagePercent: Number(ENV.SLIPPAGE_PERCENT || 1),
   port: Number(ENV.PORT || 8080),
-  trace: Boolean(ENV.TRACE || false),
+  trace: ENV.TRACE ? Boolean(ENV.TRACE) : false,
 };

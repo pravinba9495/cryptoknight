@@ -452,7 +452,13 @@ let INSTANT_SELL = true;
             targetTokenBalance = await wallet.GetTokenBalance(
               targetTokenContractAddress
             );
-            if (!stableTokenBalance.eq(Web3.utils.toBN(0))) {
+            console.log(
+              `Refreshed Balances: ${Args.stableToken}: ${stableTokenBalance}, ${Args.targetToken}: ${targetTokenBalance}`
+            );
+            if (
+              targetTokenBalance.eq(Web3.utils.toBN(0)) ||
+              !stableTokenBalance.eq(Web3.utils.toBN(0))
+            ) {
               await Promise.reject(`Awaiting tokens from the router`);
             }
           }, 2);
@@ -673,7 +679,13 @@ let INSTANT_SELL = true;
             targetTokenBalance = await wallet.GetTokenBalance(
               targetTokenContractAddress
             );
-            if (!targetTokenBalance.eq(Web3.utils.toBN(0))) {
+            console.log(
+              `Refreshed Balances: ${Args.stableToken}: ${stableTokenBalance}, ${Args.targetToken}: ${targetTokenBalance}`
+            );
+            if (
+              !targetTokenBalance.eq(Web3.utils.toBN(0)) ||
+              stableTokenBalance.eq(Web3.utils.toBN(0))
+            ) {
               await Promise.reject(`Awaiting tokens from the router`);
             }
           }, 2);

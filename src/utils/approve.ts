@@ -43,7 +43,9 @@ export const Approve = async (
   };
 
   await Forever(async () => {
+    console.log(`Fetching nonce`);
     const nonce = await wallet.GetNonce();
+    console.log(`Signing transaction}`);
     const { rawTransaction, transactionHash } = await wallet.SignTransaction({
       ...approveTxWithGas,
       nonce: nonce.toString(),
@@ -58,6 +60,7 @@ export const Approve = async (
 
   await Forever(
     async () => {
+      console.log(`Broadcasting transaction ${approveTxHash}`);
       await router.BroadcastRawTransaction(signedApproveTxWithGasRaw);
     },
     2,
