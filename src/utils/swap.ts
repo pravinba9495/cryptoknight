@@ -29,7 +29,7 @@ export const Swap = async (
   await Forever(async () => {
     console.log(`Fetching nonce`);
     const nonce = await wallet.GetNonce();
-    console.log(`Signing transaction}`);
+    console.log(`Signing transaction`);
     const { rawTransaction, transactionHash } = await wallet.SignTransaction({
       ...swapTxWithGas,
       nonce: nonce.toString(),
