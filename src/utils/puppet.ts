@@ -1,4 +1,5 @@
 import puppeteer from "puppeteer";
+import { Args } from "./flags";
 import { timeout } from "./timeout";
 import { Wait } from "./wait";
 
@@ -41,15 +42,15 @@ export const InitTradingViewTechnicals = async (
       try {
         await page.click(`button[id="${interval}"]`);
         await Wait(2);
-        const elements = await page.$$(".speedometerSignal-DPgs-R4s");
+        const elements = await page.$$("." + Args.speedometerClass);
         if (elements.length !== 3) {
           throw "Puppeteer could not fetch trade signals from TradingView";
         }
         const promises: any[] = [];
-        elements.forEach((element, index) => {
+        elements.forEach((element: any, index: number) => {
           if (index === 1) {
             promises.push(
-              page.evaluate((e) => {
+              page.evaluate((e: any) => {
                 return e.textContent;
               }, element)
             );
