@@ -3,6 +3,7 @@ export const Args = {
   publicKey: ENV.PUBLIC_KEY || "",
   privateKey: ENV.PRIVATE_KEY || "",
   mode: ENV.MODE || "MANUAL",
+  speedometerClass: ENV.SPEEDOMETER_CLASS || "speedometerSignal-RaUvtPLE",
   chatId: ENV.CHAT_ID || "",
   chartInterval: ENV.CHART_INTERVAL || "1h",
   stableToken: ENV.STABLE_TOKEN || "USDC",
