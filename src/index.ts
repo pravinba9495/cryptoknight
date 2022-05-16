@@ -70,6 +70,7 @@ let INSTANT_SELL = true;
     let targetTokenBalance = Web3.utils.toBN(0);
     let stableTokenCurrentPrice = 0;
     let targetTokenCurrentPrice = 0;
+    let highestTargetTokenPrice = 0;
     let currentStatus = "";
     let signal = "";
 
@@ -511,6 +512,15 @@ let INSTANT_SELL = true;
         let lastBuyPrice = 0;
         let stopLimitPrice = 0;
         let sellLimitPrice = 9999999999;
+
+        if(highestTargetTokenPrice < targetTokenCurrentPrice && Args.mode == "AUTO") {
+          highestTargetTokenPrice = targetTokenCurrentPrice;
+          await redis.hSet(
+            `${Args.stableToken}_${Args.targetToken}`,
+            "StopLimitPrice",
+            ((100 - Args.stopLimitPercent)/100)*highestTargetTokenPrice
+          );
+        }
 
         await Forever(async () => {
           lastBuyPrice =
