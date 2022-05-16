@@ -504,7 +504,7 @@ let INSTANT_SELL = true;
           currentStatus = "WAITING_TO_SELL";
         } else {
           console.log(
-            `HOLD (Current Price: $${targetTokenCurrentPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
+            `HOLD (Current Price: $${targetTokenCurrentPrice}, Buy Limit Price: $${buyLimitPrice}, Buy Back Limit Price: $${buyBackLimitPrice},Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
           );
         }
       } else if (currentStatus === "WAITING_TO_SELL") {
