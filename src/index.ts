@@ -388,7 +388,7 @@ let INSTANT_SELL = true;
           targetTokenCurrentPrice >= buyBackLimitPrice;
 
         if (
-          ((buyLimitReached || buyBackLimitReached) &&
+          ((buyLimitReached || buyBackLimitReached || signal == "STRONG BUY") &&
             Args.mode === "AUTO" &&
             actualSlippage <= Args.slippagePercent + 0.5) ||
           INSTANT_BUY
@@ -616,7 +616,7 @@ let INSTANT_SELL = true;
         const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
         if (
-          ((sellLimitReached || stopLimitReached) &&
+          ((sellLimitReached || stopLimitReached || (signal == "STRONG SELL" && profitOrLossPercent > 0)) &&
             Args.mode === "AUTO" &&
             actualSlippage <= Args.slippagePercent + 0.5) ||
           INSTANT_SELL
