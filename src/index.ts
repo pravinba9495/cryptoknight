@@ -75,7 +75,6 @@ let INSTANT_SELL = true;
     let signal = "";
 
     const redis = await NewClient(Args.redisAddress);
-    await redis.del(`${Args.stableToken}_${Args.targetToken}`);
     const wallet = new Wallet(Args.publicKey, Args.privateKey, Args.chainId);
     const router = new Router(Args.chainId);
 
