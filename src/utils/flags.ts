@@ -15,7 +15,6 @@ export const Args = {
   redisAddress: ENV.REDIS_ADDRESS || "",
   chainId: Number(ENV.CHAIN_ID || 137),
   preAuth: ENV.PRE_AUTH ? Boolean(ENV.PRE_AUTH) : false,
-  stopLimitPercent: ENV.STOP_LIMIT_PERCENT || 5,
   slippagePercent: Number(ENV.SLIPPAGE_PERCENT || 1),
   port: Number(ENV.PORT || 8080),
   trace: ENV.TRACE ? Boolean(ENV.TRACE) : false,
