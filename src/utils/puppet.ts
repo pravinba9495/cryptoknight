@@ -61,9 +61,9 @@ export const InitTradingViewTechnicals = async (
         isSell = signals.filter((s) => s.includes("Sell")).length ===
         signals.length;
         signal = isBuy
-          ? "STRONG BUY"
+          ? "BUY"
           : isSell
-          ? "STRONG SELL"
+          ? "SELL"
           : `NEUTRAL`;
         isPuppeteerReady = true;
       } catch (error) {

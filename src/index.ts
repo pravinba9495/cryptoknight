@@ -247,9 +247,9 @@ let INSTANT_SELL = true;
       }, 2);
 
       if (
-        signal.includes("STRONG BUY") ||
-        signal.includes("STRONG SELL") ||
-        signal.includes("NEUTRAL")
+        (signal == "BUY") ||
+        (signal == "SELL") ||
+        (signal == "NEUTRAL")
       ) {
         await Forever(async () => {
           await redis.setEx(
@@ -261,7 +261,7 @@ let INSTANT_SELL = true;
       }
 
       if (
-        (signal.includes("STRONG BUY") || signal.includes("STRONG SELL")) &&
+        ((signal == "BUY") || (signal == "SELL")) &&
         LAST_TELEGRAM_SIGNAL !== signal
       ) {
         await Forever(async () => {
@@ -387,7 +387,7 @@ let INSTANT_SELL = true;
           targetTokenCurrentPrice >= buyBackLimitPrice;
 
         if (
-          ((buyLimitReached || buyBackLimitReached || signal == "STRONG BUY") &&
+          ((buyLimitReached || buyBackLimitReached || signal == "BUY") &&
             Args.mode === "AUTO" &&
             actualSlippage <= Args.slippagePercent + 0.5) ||
           INSTANT_BUY
@@ -615,7 +615,7 @@ let INSTANT_SELL = true;
         const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
         if (
-          ((sellLimitReached || stopLimitReached || signal == "STRONG SELL") &&
+          ((sellLimitReached || stopLimitReached || signal == "SELL") &&
             Args.mode === "AUTO") ||
           INSTANT_SELL
         ) {
