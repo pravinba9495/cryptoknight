@@ -249,7 +249,7 @@ let INSTANT_SELL = true;
       if (
         signal.includes("STRONG BUY") ||
         signal.includes("STRONG SELL") ||
-        signal.includes("WEAK")
+        signal.includes("NEUTRAL")
       ) {
         await Forever(async () => {
           await redis.setEx(

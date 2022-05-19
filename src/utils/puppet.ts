@@ -30,7 +30,7 @@ export const InitTradingViewTechnicals = async (
     console.log("Page created");
     const fn = () => {
       return page.goto(
-        `https://www.tradingview.com/symbols/${ticker}/technicals/`
+        `https://www.tradingview.com/symbols/${ticker}/technicals/?exchange=BINANCE`
       );
     };
     await timeout(fn(), 30000);
@@ -47,14 +47,12 @@ export const InitTradingViewTechnicals = async (
           throw "Puppeteer could not fetch trade signals from TradingView";
         }
         const promises: any[] = [];
-        elements.forEach((element: any, index: number) => {
-          if (index === 1) {
+        elements.forEach((element: any) => {
             promises.push(
               page.evaluate((e: any) => {
                 return e.textContent;
               }, element)
             );
-          }
         });
         const signals = await Promise.all(promises);
         isBuy =
