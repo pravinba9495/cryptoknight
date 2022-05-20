@@ -2,6 +2,5 @@ build:
 	npm install
 	npm run tsc
 docker:
-	npm install
-	npm run tsc
+	make build
 	docker build . -t pravinba9495/kryptonite:latest
