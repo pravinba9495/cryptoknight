@@ -387,10 +387,10 @@ let INSTANT_SELL = true;
           targetTokenCurrentPrice >= buyBackLimitPrice;
 
         if (
-          ((buyLimitReached || buyBackLimitReached || signal == "BUY") &&
+          (signal == "BUY" &&
             Args.mode === "AUTO" &&
             actualSlippage <= Args.slippagePercent + 0.5) ||
-          INSTANT_BUY
+          INSTANT_BUY || ((buyLimitReached || buyBackLimitReached) && Args.mode === "MANUAL")
         ) {
           console.log(
             `BUY (Current Price: $${targetTokenCurrentPrice}, Slippage: ${actualSlippage.toFixed(
@@ -503,7 +503,7 @@ let INSTANT_SELL = true;
           currentStatus = "WAITING_TO_SELL";
         } else {
           console.log(
-            `HOLD (Current Price: $${targetTokenCurrentPrice}, Buy Limit Price: $${buyLimitPrice}, Buy Back Limit Price: $${buyBackLimitPrice},Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
+            `HOLD (Current Price: $${targetTokenCurrentPrice}, Buy Limit Price: $${buyLimitPrice}, Buy Back Limit Price: $${buyBackLimitPrice}, Slippage Allowed: +${Args.slippagePercent}%, Current Portfolio Value: $${currentPortfolioValue}, Minimum Return: ${toTokenAmount} ${quoteResponseDto.toToken.symbol})`
           );
         }
       } else if (currentStatus === "WAITING_TO_SELL") {
@@ -615,9 +615,9 @@ let INSTANT_SELL = true;
         const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
         if (
-          ((sellLimitReached || stopLimitReached || signal == "SELL") &&
+          (signal == "SELL" &&
             Args.mode === "AUTO") ||
-          INSTANT_SELL
+          INSTANT_SELL || ((sellLimitReached || stopLimitReached) && Args.mode === "MANUAL")
         ) {
           console.log(
             `SELL (Current Price: $${targetTokenCurrentPrice}, Last Bought Price: $${lastBuyPrice}, Sell Limit Price: $${sellLimitPrice}, Stop Limit Price: $${stopLimitPrice}, Slippage: ${actualSlippage.toFixed(
