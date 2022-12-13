@@ -4,11 +4,6 @@ import { Wait } from "./utils/wait";
 import { NewClient } from "./redis";
 import { Wallet } from "./api/wallet";
 import { Router } from "./api/oneinch";
-import {
-  GetTradeSignal,
-  InitTradingViewTechnicals,
-  IsPuppeteerReady,
-} from "./utils/puppet";
 import { InitNgRok } from "./utils/ngrok";
 import { GetCurrentStatus } from "./utils/status";
 import { Approve } from "./utils/approve";
@@ -53,7 +48,6 @@ process.on("unhandledRejection", async (error) => {
   }
 });
 
-let LAST_TELEGRAM_SIGNAL = "";
 const START_TIME = new Date().getTime();
 let LAST_DATE = 0;
 let INSTANT_BUY = false;
@@ -71,7 +65,6 @@ let INSTANT_SELL = true;
     let stableTokenCurrentPrice = 0;
     let targetTokenCurrentPrice = 0;
     let currentStatus = "";
-    let signal = "";
 
     const redis = await NewClient(Args.redisAddress);
     const wallet = new Wallet(Args.publicKey, Args.privateKey, Args.chainId);
@@ -108,25 +101,6 @@ let INSTANT_SELL = true;
       );
       targetTokenBalance = await wallet.GetTokenBalance(
         targetTokenContractAddress
-      );
-    }, 2);
-
-    InitTradingViewTechnicals(Args.targetTokenTickerKraken, Args.chartInterval);
-    while (true) {
-      if (IsPuppeteerReady()) {
-        break;
-      } else {
-        console.log("Waiting for puppeteer to be ready");
-        await Wait(2);
-      }
-    }
-
-    const t = 5 * 60;
-    await Forever(async () => {
-      await redis.setEx(
-        "LAST_SIGNAL_UPDATE",
-        t,
-        new Date().getTime().toString()
       );
     }, 2);
 
@@ -243,45 +217,6 @@ let INSTANT_SELL = true;
       }, 2);
 
       await Forever(async () => {
-        signal = await GetTradeSignal();
-      }, 2);
-
-      if (
-        (signal == "BUY") ||
-        (signal == "SELL") ||
-        (signal == "NEUTRAL")
-      ) {
-        await Forever(async () => {
-          await redis.setEx(
-            "LAST_SIGNAL_UPDATE",
-            t,
-            new Date().getTime().toString()
-          );
-        }, 2);
-      }
-
-      if (
-        ((signal == "BUY") || (signal == "SELL")) &&
-        LAST_TELEGRAM_SIGNAL !== signal
-      ) {
-        await Forever(async () => {
-          await Telegram.SendMessage(Args.botToken, Args.chatId, signal);
-        }, 2);
-      }
-      LAST_TELEGRAM_SIGNAL = signal;
-
-      await Forever(async () => {
-        const exists = await redis.exists("LAST_SIGNAL_UPDATE");
-        if (exists !== 1) {
-          await Telegram.SendMessage(
-            Args.botToken,
-            Args.chatId,
-            `Did not receive valid signal for more than ${t} seconds.`
-          );
-        }
-      }, 2);
-
-      await Forever(async () => {
         stableTokenCurrentPrice = await Kraken.GetCoinPrice(
           Args.stableTokenTickerKraken
         );
@@ -379,7 +314,7 @@ let INSTANT_SELL = true;
           } ${Args.targetToken}`
         );
         console.log(
-          `Current Status: ${currentStatus}, Current Mode: ${Args.mode}, Current Signal: ${signal}`
+          `Current Status: ${currentStatus}, Current Mode: ${Args.mode}`
         );
 
         const buyLimitReached = buyLimitPrice >= targetTokenCurrentPrice;
@@ -387,9 +322,6 @@ let INSTANT_SELL = true;
           targetTokenCurrentPrice >= buyBackLimitPrice;
 
         if (
-          (signal == "BUY" &&
-            Args.mode === "AUTO" &&
-            actualSlippage <= Args.slippagePercent + 0.5) ||
           INSTANT_BUY || ((buyLimitReached || buyBackLimitReached) && Args.mode === "MANUAL")
         ) {
           console.log(
@@ -406,7 +338,7 @@ let INSTANT_SELL = true;
             await Telegram.SendMessage(
               Args.botToken,
               Args.chatId,
-              `Signal Received: ${signal}`
+              `Signal Received: BUY`
             );
           }, 2);
 
@@ -608,15 +540,13 @@ let INSTANT_SELL = true;
         );
 
         console.log(
-          `Current Status: ${currentStatus}, Current Signal: ${signal}`
+          `Current Status: ${currentStatus}`
         );
 
         const sellLimitReached = targetTokenCurrentPrice >= sellLimitPrice;
         const stopLimitReached = stopLimitPrice >= targetTokenCurrentPrice;
 
         if (
-          (signal == "SELL" &&
-            Args.mode === "AUTO") ||
           INSTANT_SELL || ((sellLimitReached || stopLimitReached) && Args.mode === "MANUAL")
         ) {
           console.log(
@@ -634,7 +564,7 @@ let INSTANT_SELL = true;
             await Telegram.SendMessage(
               Args.botToken,
               Args.chatId,
-              `Signal Received: ${signal}, Profit/Loss: ${profitOrLossPercent}%`
+              `Signal Received: SELL, Profit/Loss: ${profitOrLossPercent}%`
             );
           }, 2);
 
