@@ -20,7 +20,6 @@ export const Swap = async (
     swapTxWithGas = {
       ...swapTx,
       gasPrice: undefined,
-      maxPriorityFeePerGas: gasPrice,
       maxFeePerGas: gasPrice,
       gas: swapTx.gas + Math.ceil(0.25 * swapTx.gas),
     };
