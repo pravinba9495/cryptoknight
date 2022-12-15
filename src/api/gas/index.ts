@@ -19,14 +19,14 @@ export class Gas {
         if (chainId === 1) {
           return Web3.utils
             .toBN(
-              `${Math.ceil((Number(response["fastest"]) * 1.5) / 10)}000000000`
+              `${Math.ceil(Number(response["fastest"]) / 10)}000000000`
             )
             .toString();
         } else if (chainId === 137) {
           return Web3.utils
             .toBN(
               `${Math.ceil(
-                Number(response["fast"]["maxPriorityFee"]) * 1.5
+                Number(response["fast"]["maxFee"])
               )}000000000`
             )
             .toString();
