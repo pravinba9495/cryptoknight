@@ -26,7 +26,8 @@ export class Gas {
           return Web3.utils
             .toBN(
               `${Math.ceil(
-                Number(response["fast"]["maxFee"])
+                (Number(response["estimatedBaseFee"]) * 2) + 
+                Number(response["fast"]["maxPriorityFee"])
               )}000000000`
             )
             .toString();
